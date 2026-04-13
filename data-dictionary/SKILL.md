@@ -45,11 +45,11 @@ generate schema docs
 
 **Determine the operating mode:**
 
-1. If `--update` is passed **and** the output file exists → **Update Mode** (go to [Update Mode](#update-mode) section below, skip Step 0 questions)
+1. If `--update` is passed **and** the output file exists → **Update Mode** (go to [Update Mode](#update-mode) section below)
 2. If `--update` is passed **but** the output file does not exist → fall back to **Generate Mode** with a note: *"No existing data dictionary found at `<path>` — generating from scratch."*
 3. If no `--update` flag → **Generate Mode**
 
-**Generate Mode only — ask the user (in a single message):**
+**Generate Mode — ask the user (in a single message):**
 > I'll generate a data dictionary for this project. A couple of quick questions:
 >
 > 1. Do you have a **domain glossary** — business definitions for any terms used in column or table names? (e.g. "lot_number = the GMP batch identifier assigned at manufacturing start"). If yes, paste them or point me to a file. If no, just say skip.
@@ -57,7 +57,15 @@ generate schema docs
 >
 > You can answer both or just say "skip both" to proceed with defaults.
 
-Wait for the user's response before continuing. Incorporate any glossary terms and exclusion lists into the output.
+**Update Mode — ask the user (in a single message):**
+> I'll refresh the data dictionary at `<path>`. Quick check:
+>
+> 1. Any **new glossary terms** to add or existing ones to update? If no, just say skip.
+> 2. Any **tables or columns to add/remove from the exclusion list**? If no, just say skip.
+>
+> You can say "skip both" to proceed with stats refresh only.
+
+Wait for the user's response before continuing in either mode. Incorporate any glossary terms and exclusion changes into the output.
 
 ---
 
@@ -304,7 +312,9 @@ Construct the updated file by:
    - Keep the row in the `#### Columns` table
    - Replace the Description cell content with: `⚠️ Column removed from schema as of <YYYY-MM-DD>. Previous description: <original description>`
 
-8. **Regenerate the ER diagram** only if the set of tables or foreign keys changed. Otherwise keep it unchanged.
+8. **ER Diagram**:
+   - If the existing file has **no Mermaid `erDiagram` block** (e.g. it was generated before this feature was added) → **always generate and add it**, regardless of schema changes.
+   - If the existing file already has an `erDiagram` block → regenerate only if the set of tables or foreign keys changed. Otherwise keep it unchanged.
 
 9. **Refresh `## Data Quality Notes`** entirely with fresh anomaly detection.
 
