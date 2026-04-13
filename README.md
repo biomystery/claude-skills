@@ -7,6 +7,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | Skill | Command | Description |
 |-------|---------|-------------|
 | [data-dictionary](data-dictionary/) | `/data-dictionary` | Generate a markdown data dictionary from a Prisma schema + live SQLite DB |
+| [photo-year-collage](photo-year-collage/) | `/photo-year-collage` | Create a year-labeled photo collage grid from annual photos (visa applications, timelines) |
 
 ## What is a Claude Code Skill?
 
