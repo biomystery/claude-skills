@@ -8,6 +8,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 |-------|---------|-------------|
 | [data-dictionary](data-dictionary/) | `/data-dictionary` | Generate a markdown data dictionary from a Prisma schema + live SQLite DB |
 | [photo-year-collage](photo-year-collage/) | `/photo-year-collage` | Create a year-labeled photo collage grid from annual photos (visa applications, timelines) |
+| [tax-history-tracker](tax-history-tracker/) | `/tax-history-tracker` | Build a multi-year U.S. tax history tracker from Form 1040 PDFs — extracts income, AGI, deductions, tax, effective rate, and refund/owe across all years |
 
 ## What is a Claude Code Skill?
 
