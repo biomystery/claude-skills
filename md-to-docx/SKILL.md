@@ -110,7 +110,7 @@ for i, match in enumerate(matches):
     with open(mmd_path, 'w') as f:
         f.write(match.group(1))
     result = subprocess.run(
-        ["npx", "@mermaid-js/mermaid-cli", "-i", mmd_path, "-o", png_path],
+        ["npx", "@mermaid-js/mermaid-cli", "-i", mmd_path, "-o", png_path, "--scale", "3"],
         capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -158,6 +158,55 @@ pandoc "$TMP_MD" -o "$OUT_DOCX"
 ```
 
 If pandoc exits non-zero, show the full error message to the user.
+
+---
+
+### Step 3.5: Style Tables (post-process with python-docx)
+
+Run inline via `python3 -` — applies header row (dark navy bg, white bold text) and alternating row bands to every table in the generated `.docx`:
+
+```python
+from docx import Document
+from docx.shared import RGBColor
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+
+HEADER_BG = '1E3A5F'   # dark navy — matches headings
+ODD_BG    = 'EBF4FD'   # light blue — matches blockquote bg
+EVEN_BG   = 'FFFFFF'
+
+def set_cell_shading(cell, fill_hex):
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    for el in tcPr.findall(qn('w:shd')):
+        tcPr.remove(el)
+    shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'), fill_hex)
+    tcPr.append(shd)
+
+doc = Document("<OUT_DOCX>")
+for table in doc.tables:
+    seen = set()
+    for row_idx, row in enumerate(table.rows):
+        is_header = row_idx == 0
+        fill = HEADER_BG if is_header else (ODD_BG if row_idx % 2 == 1 else EVEN_BG)
+        for cell in row.cells:
+            cid = id(cell._tc)
+            if cid in seen:
+                continue
+            seen.add(cid)
+            set_cell_shading(cell, fill)
+            if is_header:
+                for para in cell.paragraphs:
+                    for run in para.runs:
+                        run.bold = True
+                        run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+doc.save("<OUT_DOCX>")
+```
+
+Replace `<OUT_DOCX>` with the actual output path.
 
 ---
 

@@ -84,6 +84,19 @@ def set_para_spacing(style, before=None, after=None, line=None):
         spc.set(qn('w:line'), str(line))
         spc.set(qn('w:lineRule'), 'auto')
 
+def set_char_shading(style, fill_hex):
+    rPr = style.element.find(qn('w:rPr'))
+    if rPr is None:
+        rPr = OxmlElement('w:rPr')
+        style.element.append(rPr)
+    for el in rPr.findall(qn('w:shd')):
+        rPr.remove(el)
+    shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'), fill_hex)
+    rPr.append(shd)
+
 def set_font_color_xml(style, color_hex):
     rPr = style.element.find(qn('w:rPr'))
     if rPr is None:
@@ -138,12 +151,13 @@ def build(out_path):
     set_font_color_xml(h3, '334155')
     set_para_spacing(h3, before=160, after=60)
 
-    # VerbatimChar — inline code: Consolas, dark slate
+    # VerbatimChar — inline code: Consolas, dark slate, neutral background
     vc = doc.styles['Verbatim Char']
     vc.font.name = 'Consolas'
     vc.font.size = Pt(9.5)
     vc.font.bold = False
     set_font_color_xml(vc, '2D3748')
+    set_char_shading(vc, 'EDEFF2')
 
     # Source Code — fenced code blocks: light gray bg, gray left bar
     style_names = [s.name for s in doc.styles]
