@@ -1,6 +1,6 @@
 ---
 name: tax-history-tracker
-description: Build a multi-year tax history tracker from a folder of annual U.S. federal tax returns (Form 1040 PDFs). Extracts income, AGI, deductions, tax, effective rate, and refund/owe across all years into a CSV and Markdown summary.
+description: Builds a multi-year tax history tracker from a folder of annual U.S. federal tax returns (Form 1040 PDFs). Use when summarizing income trends, effective rates, or refund history across years, or when asked to document tax history.
 user-invocable: true
 ---
 

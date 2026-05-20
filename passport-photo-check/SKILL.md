@@ -1,6 +1,6 @@
 ---
 name: passport-photo-check
-description: Given a print-lab layout JPEG (e.g., 4×6 Walgreens sheet), verify each individual photo meets official ID/passport requirements — both visually (face proportion, expression, background) and dimensionally (exact mm per photo via pixel analysis).
+description: Verifies each photo in a tiled print-lab layout JPEG (e.g., 4×6 Walgreens sheet) against official ID/passport requirements — visually (face proportion, expression, background) and dimensionally (exact mm via pixel analysis). Use when confirming a layout is compliant before sending to the print lab.
 user-invocable: true
 ---
 
@@ -75,89 +75,17 @@ Report a table like:
 
 ### Step 3: Dimension Measurement
 
-Run the following Python snippet to precisely measure individual photo dimensions from the pixel data:
-
-```python
-from PIL import Image
-
-img = Image.open("<layout_path>")
-gray = img.convert('L')
-W, H = img.size
-DPI = 300  # standard photo lab output
-pixels = list(gray.getdata())
-
-def col_pixels(x):
-    return [pixels[y * W + x] for y in range(H)]
-
-def row_pixels(y):
-    return pixels[y * W:(y + 1) * W]
-
-# Find content boundaries (non-white = < 240)
-content_left  = next(x for x in range(W)     if any(p < 240 for p in col_pixels(x)))
-content_right = next(x for x in range(W-1,-1,-1) if any(p < 240 for p in col_pixels(x)))
-content_top   = next(y for y in range(H)     if any(p < 240 for p in row_pixels(y)))
-content_bottom= next(y for y in range(H-1,-1,-1) if any(p < 240 for p in row_pixels(y)))
-
-print(f"Full image: {W}x{H}px = {W/DPI*25.4:.1f}mm x {H/DPI*25.4:.1f}mm at {DPI} DPI")
-print(f"Content area: {content_right-content_left+1} x {content_bottom-content_top+1} px")
-
-# Find vertical column gaps (all-white columns within content area)
-gap_cols = [x for x in range(content_left, content_right+1)
-            if all(pixels[y*W+x] > 240 for y in range(content_top, content_bottom+1))]
-
-# Group into gap segments
-def group_runs(positions):
-    if not positions: return []
-    groups, start = [], positions[0]
-    for i in range(1, len(positions)):
-        if positions[i] != positions[i-1] + 1:
-            groups.append((start, positions[i-1]))
-            start = positions[i]
-    groups.append((start, positions[-1]))
-    return groups
-
-col_gaps = group_runs(gap_cols)
-row_gap_rows = [y for y in range(content_top, content_bottom+1)
-                if all(pixels[y*W+x] > 240 for x in range(content_left, content_right+1))]
-row_gaps = group_runs(row_gap_rows)
-sig_row_gaps = [(s,e) for s,e in row_gaps if e-s >= 3]
-
-print(f"\nColumn gaps: {col_gaps}")
-print(f"Row gaps (significant): {sig_row_gaps}")
-
-if col_gaps:
-    main_gap = max(col_gaps, key=lambda g: g[1]-g[0])
-    w1 = main_gap[0] - content_left
-    w2 = content_right - main_gap[1]
-    print(f"\nPhoto widths:  col1={w1}px={w1/DPI*25.4:.1f}mm  col2={w2}px={w2/DPI*25.4:.1f}mm")
-
-if len(sig_row_gaps) >= 2:
-    g1, g2 = sig_row_gaps[0], sig_row_gaps[1]
-    h1 = g1[0] - content_top
-    h2 = g2[0] - g1[1]
-    h3 = content_bottom - g2[1]
-    print(f"Photo heights: row1={h1}px={h1/DPI*25.4:.1f}mm  row2={h2}px={h2/DPI*25.4:.1f}mm  row3={h3}px={h3/DPI*25.4:.1f}mm")
-elif len(sig_row_gaps) == 1:
-    g1 = sig_row_gaps[0]
-    h1 = g1[0] - content_top
-    h2 = content_bottom - g1[1]
-    print(f"Photo heights: row1={h1}px={h1/DPI*25.4:.1f}mm  row2={h2}px={h2/DPI*25.4:.1f}mm")
-```
-
-Run it via Bash:
+Resolve the skill directory, then run the bundled measurement script:
 
 ```bash
-python3 - <<'PYEOF'
-<paste script above with layout_path filled in>
-PYEOF
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/passport-photo-check/SKILL.md)")"
+python3 "$SKILL_DIR/scripts/measure_photos.py" "<layout_path>"
 ```
 
-#### Edge case: non-300 DPI file
-
-If the image metadata reports a different DPI, use that value instead of 300:
+The script auto-reads DPI from image metadata. To override:
 
 ```bash
-sips -g dpiWidth dpiHeight "<layout_path>"
+python3 "$SKILL_DIR/scripts/measure_photos.py" "<layout_path>" --dpi 600
 ```
 
 ### Step 4: Report Results
@@ -233,5 +161,7 @@ Overall: FAIL — face too small in rows 1–2. Re-crop source photo and re-run 
 ```
 passport-photo-check/
 ├── SKILL.md    (this file — skill definition Claude executes)
-└── README.md   (user-facing docs)
+├── README.md   (user-facing docs)
+└── scripts/
+    └── measure_photos.py   (pixel-level dimension measurement)
 ```

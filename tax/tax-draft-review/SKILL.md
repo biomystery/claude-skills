@@ -1,6 +1,6 @@
 ---
 name: tax-draft-review
-description: Audit a U.S. Form 1040 draft return against known income documents — catches missing 1099-Rs, wrong IRA basis, omitted Schedule C deductions, and SALT errors before filing.
+description: Audits a U.S. Form 1040 draft return against known income documents to catch errors before filing. Use when verifying a self-prepared or preparer-drafted return — catches missing 1099-Rs, wrong IRA basis, omitted Schedule C deductions, and SALT cap errors.
 user-invocable: true
 ---
 
@@ -132,6 +132,7 @@ SALT cap:
 
 If itemized > standard deduction → itemizing is correct.
 Standard deductions (MFJ): 2024: $29,200 | 2025: $31,500
+⚠️ Verify SALT cap and standard deduction for the filing year — both change annually.
 ```
 
 #### 4b: QBI Deduction (Form 8995)

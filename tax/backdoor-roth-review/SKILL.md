@@ -1,6 +1,6 @@
 ---
 name: backdoor-roth-review
-description: Verify Form 8606 for a backdoor Roth IRA conversion — checks Line 1/2 basis, Code G vs Code 2 separation, pro-rata calculation, and Form 1040 Line 4a/4b — and outputs the expected value for every line.
+description: Verifies Form 8606 for a backdoor Roth IRA conversion — checks Line 1/2 basis, Code G vs Code 2 separation, pro-rata calculation, and Form 1040 Line 4a/4b. Use when reviewing a draft return for IRA errors or confirming a backdoor Roth conversion was reported correctly.
 user-invocable: true
 ---
 
@@ -193,7 +193,9 @@ If Line 14 = $0 after a full conversion with no remaining balance:
 
 Per-filer table of expected Form 8606 line values, comparison with draft if provided, and a prioritized list of discrepancies.
 
-## Key Constants (2025)
+## Key Constants
+
+> ⚠️ Figures below are for **tax year 2025**. Verify against IRS publications before using for other years.
 
 | Item | Value |
 |---|---|

@@ -1,6 +1,6 @@
 ---
 name: schedule-c-tracker
-description: Organize self-employment income and expenses for U.S. Schedule C — reconciles bank transactions against reported income, categorizes deductions (home office, Section 179, phone/internet), and outputs ready-to-file line values with SE tax and QBI estimates.
+description: Organizes self-employment income and expenses for U.S. Schedule C, reconciling bank transactions against reported income and categorizing deductions. Use when preparing Schedule C from bank records and receipts, or estimating SE tax and QBI deduction before filing.
 user-invocable: true
 ---
 
@@ -260,7 +260,9 @@ Flag any items that need receipts or documentation.
 
 Per-business Schedule C line values, SE tax estimate, QBI estimate, and a list of items needing receipts or documentation before filing.
 
-## Key Constants (2025)
+## Key Constants
+
+> ⚠️ Figures below are for **tax year 2025**. Verify against IRS publications before using for other years.
 
 | Item | Value |
 |---|---|

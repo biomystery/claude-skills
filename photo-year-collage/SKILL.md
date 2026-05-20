@@ -1,6 +1,6 @@
 ---
 name: photo-year-collage
-description: Create a year-labeled photo collage from a folder of annual photos. Designed for China visa applications requiring facial-change documentation (历年生活照片), but works for any year-based photo timeline.
+description: Creates a year-labeled photo collage from a folder of annual photos. Designed for China visa applications requiring facial-change documentation (历年生活照片), but works for any year-based photo timeline. Use when generating a chronological photo grid or visa life-photo proof (面相变化).
 user-invocable: true
 ---
 
@@ -43,6 +43,7 @@ Apply to all files matching the requested years, then confirm before proceeding 
 Use the bundled script:
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/photo-year-collage/SKILL.md)")"
 python3 "$SKILL_DIR/scripts/create_collage.py" "<photo_folder>" [output_filename]
 ```
 

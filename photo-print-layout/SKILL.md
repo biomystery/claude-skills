@@ -1,6 +1,6 @@
 ---
 name: photo-print-layout
-description: Tile any fixed-size ID/passport photo onto a standard print canvas (4x6, 5x7, etc.) at 300 DPI, ready for Walgreens or any photo lab. Auto-calculates the optimal grid, gaps, and margins.
+description: Tiles a fixed-size ID/passport photo onto a standard print canvas (4x6, 5x7, etc.) at 300 DPI, auto-calculating the optimal grid, gaps, and margins. Use when preparing a print-ready JPEG for Walgreens, CVS, Costco, or any photo lab.
 user-invocable: true
 ---
 
@@ -57,6 +57,7 @@ python3 -c "from PIL import Image; print('OK')" 2>&1 || pip3 install Pillow -q
 ### Step 2: Run the Layout Script
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/photo-print-layout/SKILL.md)")"
 python3 "$SKILL_DIR/scripts/layout.py" \
   "<photo_path>" \
   <photo_width_mm> <photo_height_mm> \

@@ -1,6 +1,6 @@
 ---
 name: md-to-docx
-description: Convert a Markdown file to Word (.docx), rendering any Mermaid diagrams as embedded PNG images. Applies a bundled business style (headings, code blocks, blockquotes) by default. Uses pandoc + mermaid-cli (via npx, no global install needed).
+description: Converts a Markdown file to a Word (.docx) document, rendering Mermaid diagrams as embedded PNG images and applying a bundled business style. Use when sharing markdown with Word or Google Docs users, or when a markdown file contains Mermaid diagrams that need to appear as images in the output.
 user-invocable: true
 ---
 
@@ -89,58 +89,15 @@ The script auto-installs `python-docx` if needed, pulls pandoc's default referen
 
 ### Step 2: Extract and Render Mermaid Diagrams
 
-Run inline via `python3 -` — extracts all ` ```mermaid ``` ` blocks, renders each to PNG, splices image refs into a temp markdown copy:
+Run the bundled script — extracts all ` ```mermaid ``` ` blocks, renders each to PNG, writes a temp markdown copy with image references:
 
-```python
-import re, subprocess, os, sys
-
-src     = "<ABSOLUTE_PATH_TO_SOURCE_MD>"
-src_dir = os.path.dirname(src)
-
-with open(src) as f:
-    content = f.read()
-
-mermaid_pattern = re.compile(r'```mermaid\n(.*?)\n```', re.DOTALL)
-matches = list(mermaid_pattern.finditer(content))
-
-png_paths = []
-for i, match in enumerate(matches):
-    mmd_path = os.path.join(src_dir, f"_mermaid_{i}.mmd")
-    png_path = os.path.join(src_dir, f"_mermaid_{i}.png")
-    with open(mmd_path, 'w') as f:
-        f.write(match.group(1))
-    result = subprocess.run(
-        ["npx", "@mermaid-js/mermaid-cli", "-i", mmd_path, "-o", png_path, "--scale", "3"],
-        capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print(f"Warning: mermaid render failed for block {i}: {result.stderr}", file=sys.stderr)
-        png_paths.append(None)
-    else:
-        png_paths.append(png_path)
-    os.remove(mmd_path)
-
-offset = 0
-new_content = content
-for i, match in enumerate(matches):
-    png = png_paths[i]
-    replacement = f"![Diagram]({png})" if png else match.group(0)
-    new_content = (new_content[:match.start() + offset]
-                   + replacement
-                   + new_content[match.end() + offset:])
-    offset += len(replacement) - (match.end() - match.start())
-
-tmp_md = os.path.join(src_dir, "_tmp_pandoc_input.md")
-with open(tmp_md, 'w') as f:
-    f.write(new_content)
-
-print(f"TMP_MD={tmp_md}")
-print(f"PNG_COUNT={len([p for p in png_paths if p])}")
+```bash
+output=$(python3 "$SKILL_DIR/scripts/render_mermaid.py" "$SRC_MD")
+TMP_MD=$(echo "$output" | grep '^TMP_MD=' | cut -d= -f2-)
+PNG_COUNT=$(echo "$output" | grep '^PNG_COUNT=' | cut -d= -f2)
 ```
 
-Capture `TMP_MD` and `PNG_COUNT` from stdout.
-
-If no Mermaid blocks are found, skip rendering and use the source file directly.
+If `PNG_COUNT=0`, no Mermaid blocks were found and `TMP_MD` equals the source file.
 
 ---
 
@@ -163,50 +120,11 @@ If pandoc exits non-zero, show the full error message to the user.
 
 ### Step 3.5: Style Tables (post-process with python-docx)
 
-Run inline via `python3 -` — applies header row (dark navy bg, white bold text) and alternating row bands to every table in the generated `.docx`:
+Run the bundled script — applies dark-navy header row and alternating row bands to every table in the generated `.docx`:
 
-```python
-from docx import Document
-from docx.shared import RGBColor
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
-
-HEADER_BG = '1E3A5F'   # dark navy — matches headings
-ODD_BG    = 'EBF4FD'   # light blue — matches blockquote bg
-EVEN_BG   = 'FFFFFF'
-
-def set_cell_shading(cell, fill_hex):
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    for el in tcPr.findall(qn('w:shd')):
-        tcPr.remove(el)
-    shd = OxmlElement('w:shd')
-    shd.set(qn('w:val'), 'clear')
-    shd.set(qn('w:color'), 'auto')
-    shd.set(qn('w:fill'), fill_hex)
-    tcPr.append(shd)
-
-doc = Document("<OUT_DOCX>")
-for table in doc.tables:
-    seen = set()
-    for row_idx, row in enumerate(table.rows):
-        is_header = row_idx == 0
-        fill = HEADER_BG if is_header else (ODD_BG if row_idx % 2 == 1 else EVEN_BG)
-        for cell in row.cells:
-            cid = id(cell._tc)
-            if cid in seen:
-                continue
-            seen.add(cid)
-            set_cell_shading(cell, fill)
-            if is_header:
-                for para in cell.paragraphs:
-                    for run in para.runs:
-                        run.bold = True
-                        run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-doc.save("<OUT_DOCX>")
+```bash
+python3 "$SKILL_DIR/scripts/style_tables.py" "$OUT_DOCX"
 ```
-
-Replace `<OUT_DOCX>` with the actual output path.
 
 ---
 
@@ -261,5 +179,7 @@ md-to-docx/
 ├── README.md
 ├── business-reference.docx  (generated on first run, then reused)
 └── scripts/
-    └── make_reference.py    (generates the business reference doc)
+    ├── make_reference.py    (generates the business reference doc)
+    ├── render_mermaid.py    (extracts and renders Mermaid blocks to PNG)
+    └── style_tables.py      (applies table header/band styling to .docx)
 ```
