@@ -179,15 +179,10 @@ Add a row to the skills table in `$SKILLS_DIR/README.md`:
 | [<skill-name>](<skill-name>/) | `/<skill-name>` | <one-line description> |
 ```
 
-### Step 7: Commit on a Branch and Open a PR
-
-Resolve everything locally first. Then:
+### Step 7: Single Clean Commit
 
 ```bash
 cd "$SKILLS_DIR"
-BRANCH="add/<skill-name>"
-git checkout -b "$BRANCH"
-
 git add <skill-name>/ README.md
 git status   # verify ONLY intended files are staged — nothing else
 git commit -m "add <skill-name> skill
@@ -195,53 +190,20 @@ git commit -m "add <skill-name> skill
 <2–3 sentence description>
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-git push -u origin "$BRANCH"
+git push origin main
 ```
 
-Create the PR:
+Publish as **one commit**. Do not push an iterative series of "add / fix / fix privacy" commits. Resolve everything locally before pushing.
+
+### Step 8: Verify and Report
 
 ```bash
-gh pr create \
-  --title "add <skill-name> skill" \
-  --body "$(cat <<'EOF'
-## Summary
-- Adds `/<skill-name>` slash command
-- <one-line description of what the skill does>
-- Includes Mermaid workflow diagram and privacy review passed
-
-## Review checklist
-- [ ] Workflow steps are accurate and complete
-- [ ] Privacy review passed (no real data in sample output)
-- [ ] Mermaid diagram renders correctly on GitHub
-- [ ] Description is third-person with a 'Use when' trigger
-EOF
-)"
-```
-
-### Step 8: HITL Review — wait for human approval
-
-Present the PR URL and **stop**:
-
-> "PR ready for review: **<PR URL>**
-> Please check the diff and reply **'approved'** (or **'LGTM'**) to merge, or describe any changes needed."
-
-Do **not** merge or take any further git actions until the user explicitly approves.
-
-If changes are requested: make them on the same branch, commit, and push — the PR updates automatically. Repeat the approval request.
-
-### Step 9: Merge and Report
-
-Once the user approves:
-
-```bash
-gh pr merge --squash --delete-branch
-git -C "$SKILLS_DIR" pull   # sync local main
 git -C "$SKILLS_DIR" log --oneline -4
 ```
 
 Report back:
 - Skill name and slash command
-- Merged commit SHA
+- Commit SHA
 - Files published
 - Install command for the user
 
