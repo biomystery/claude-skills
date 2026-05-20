@@ -1,6 +1,6 @@
 ---
 name: session-to-skill
-description: Immediately after completing a multi-step task in Claude Code, abstract what you just did into a reusable, publishable skill. Claude reconstructs the workflow from session context — no re-explanation needed.
+description: Abstracts a just-completed Claude Code task into a reusable, publishable skill by reconstructing the workflow from session context. Use immediately after finishing a non-trivial task — captures steps, tools, edge cases, and privacy risks without re-explanation.
 user-invocable: true
 ---
 
@@ -26,7 +26,13 @@ Do **not** ask the user to re-describe the task. Instead, look back at the curre
 4. **What were the key steps?** List them in order — include decision points (e.g., "if PDF has no text → skip"), fallback strategies, and special-case handling.
 5. **What tools/CLIs were essential?** (e.g., `pdftotext`, `gh`, `ffmpeg`)
 6. **What gotchas or lessons emerged?** (things that failed first, edge cases discovered, privacy risks encountered)
-7. **Is a supporting script needed?** Only if the task required non-trivial computation (image processing, complex transforms) beyond CLI + Claude's own tools. If everything ran via bash + Claude's Write/Read/Edit tools, the answer is no.
+7. **Is a supporting script needed?** Create a file in `scripts/` if ANY of these apply:
+   - The code is 15+ lines
+   - It will be called more than once in the workflow
+   - It's part of a validation/feedback loop
+   - Complex argument composition makes it error-prone to type each time
+
+   If it's a one-shot bash one-liner or simple install command, keep it inline. When in doubt, extract to a script — it saves tokens and ensures consistency across runs.
 
 Present this reconstruction to the user as a brief outline and ask:
 - Does this capture the workflow accurately?
@@ -35,22 +41,31 @@ Present this reconstruction to the user as a brief outline and ask:
 
 ### Step 2: Explore the Target Repository
 
-```bash
-# Check if already cloned
-ls /tmp/claude-skills 2>/dev/null || git clone <repo_url> /tmp/claude-skills
+If `--repo <url>` was passed, use that URL. Otherwise, ask the user: *"What is the URL of your skills repository?"* before proceeding.
 
-cd /tmp/claude-skills && git pull && git log --oneline -3 && ls
+```bash
+REPO_URL=<url-from-above>
+SKILLS_DIR="${SKILLS_REPO_DIR:-$HOME/projects/claude-skills}"
+
+# Use existing clone if present, otherwise clone fresh
+if [ -d "$SKILLS_DIR/.git" ]; then
+  git -C "$SKILLS_DIR" pull
+else
+  git clone "$REPO_URL" "$SKILLS_DIR"
+fi
+
+git -C "$SKILLS_DIR" log --oneline -3 && ls "$SKILLS_DIR"
 ```
 
 Read one existing skill to internalize conventions before writing:
 
 ```bash
-cat /tmp/claude-skills/<any-existing-skill>/SKILL.md | head -60
+head -60 "$SKILLS_DIR"/<any-existing-skill>/SKILL.md
 ```
 
 ### Step 3: Write SKILL.md
 
-Create `/tmp/claude-skills/<skill-name>/SKILL.md`:
+Create `$SKILLS_DIR/<skill-name>/SKILL.md`:
 
 ```markdown
 ---
@@ -82,6 +97,15 @@ user-invocable: true
 ## Skill Structure
 ```
 
+> If Step 1 question 7 determined a script is needed, add a `scripts/` subdirectory and list it under `## Skill Structure`:
+> ```
+> <skill-name>/
+> ├── SKILL.md
+> ├── README.md
+> └── scripts/
+>     └── <helper>.py
+> ```
+
 **Writing guidelines:**
 - Instructions must be imperative and concrete — Claude executes them literally
 - Include real bash commands with placeholders, not vague prose
@@ -91,7 +115,7 @@ user-invocable: true
 
 ### Step 4: Write README.md
 
-Create `/tmp/claude-skills/<skill-name>/README.md`:
+Create `$SKILLS_DIR/<skill-name>/README.md`:
 
 ```markdown
 # <skill-name>
@@ -149,7 +173,7 @@ Scan every line of both files against this checklist:
 
 ### Step 6: Update Repository README
 
-Add a row to the skills table in `/tmp/claude-skills/README.md`:
+Add a row to the skills table in `$SKILLS_DIR/README.md`:
 
 ```markdown
 | [<skill-name>](<skill-name>/) | `/<skill-name>` | <one-line description> |
@@ -158,14 +182,14 @@ Add a row to the skills table in `/tmp/claude-skills/README.md`:
 ### Step 7: Single Clean Commit
 
 ```bash
-cd /tmp/claude-skills
+cd "$SKILLS_DIR"
 git add <skill-name>/ README.md
 git status   # verify ONLY intended files are staged — nothing else
 git commit -m "add <skill-name> skill
 
 <2–3 sentence description>
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude <noreply@anthropic.com>"
 git push origin main
 ```
 
@@ -174,7 +198,7 @@ Publish as **one commit**. Do not push an iterative series of "add / fix / fix p
 ### Step 8: Verify and Report
 
 ```bash
-cd /tmp/claude-skills && git log --oneline -4
+git -C "$SKILLS_DIR" log --oneline -4
 ```
 
 Report back:
