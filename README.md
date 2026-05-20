@@ -17,6 +17,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [backdoor-roth-review](tax/backdoor-roth-review/) | `/backdoor-roth-review` | Verify Form 8606 for a backdoor Roth IRA conversion — checks Line 1/2 basis, Code G vs Code 2 separation, pro-rata calculation, and Form 1040 Line 4a/4b — outputs expected value for every line |
 | [tax-draft-review](tax/tax-draft-review/) | `/tax-draft-review` | Audit a U.S. Form 1040 draft return against known income documents — catches missing 1099-Rs, wrong IRA basis, omitted Schedule C deductions, and SALT errors before filing |
 | [schedule-c-tracker](tax/schedule-c-tracker/) | `/schedule-c-tracker` | Build a complete Schedule C from bank exports and receipts — reconciles gross income, categorizes deductions (home office, Section 179, phone/internet), and outputs ready-to-file line values with SE tax and QBI estimates |
+| [skill-auditor](skill-auditor/) | `/skill-auditor` | Audit all skills in a repo against the official best-practices doc — files themed GitHub issues and implements every fix (description voice, line count, $SKILL_DIR, inline scripts, stale constants) in one clean commit |
 
 ## What is a Claude Code Skill?
 
