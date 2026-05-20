@@ -31,12 +31,14 @@ flowchart TD
     I --> H
     H -->|Clean| J[Update repo README\nadd row to skills table]
 
-    J --> K[Single clean commit\ngit add · verify status\ngit commit · git push]
+    J --> K[Commit on branch\ngit checkout -b · git commit\ngit push · gh pr create]
 
-    K --> L{Push clean?}
-    L -->|Yes| M(["Done\nskill live on GitHub"])
-    L -->|No — leaked data in history| N["git reset --hard\nto last clean SHA\nrewrite · force push"]
-    N --> M
+    K --> L{HITL review\nshow PR URL · wait}
+    L -->|Changes requested| M[Fix on same branch\ngit commit · git push]
+    M --> L
+    L -->|Approved| N[gh pr merge --squash\ngit pull]
+
+    N --> O(["Done\nskill live on GitHub"])
 ```
 
 ## Install

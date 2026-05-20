@@ -125,10 +125,15 @@ Rename `## Key Constants (YYYY)` → `## Key Constants` and add:
 > ⚠️ Figures below are for **YYYY**. Verify against official publications before using for other years.
 ```
 
-### Step 5: Single Clean Commit
+### Step 5: Commit on a Branch and Open a PR
+
+Resolve all fixes locally first, then:
 
 ```bash
 cd "$SKILLS_DIR"
+BRANCH="fix/skill-audit-$(date +%Y%m%d)"
+git checkout -b "$BRANCH"
+
 git add <all changed and new files>
 git status   # verify ONLY intended files are staged
 git commit -m "audit skills against best-practices docs (closes #N #N #N)
@@ -136,20 +141,61 @@ git commit -m "audit skills against best-practices docs (closes #N #N #N)
 <2–3 sentence summary of themes fixed>
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-git push origin main
+git push -u origin "$BRANCH"
 ```
 
-### Step 6: Verify and Report
+Create the PR:
 
 ```bash
+gh pr create \
+  --title "audit skills against best-practices docs" \
+  --body "$(cat <<'EOF'
+## Summary
+Fixes found by auditing all SKILL.md files against the official best-practices doc.
+
+- #N — <theme title>
+- #N — <theme title>
+...
+
+## Changes
+- Modified: N SKILL.md files
+- Created: <list new files>
+
+## Review checklist
+- [ ] All description fixes are third-person with 'Use when' trigger
+- [ ] Split files are referenced correctly from SKILL.md
+- [ ] Extracted scripts have argparse / sys.argv and are listed in Skill Structure
+- [ ] Year-constant callouts use the correct year
+EOF
+)"
+```
+
+### Step 6: HITL Review — wait for human approval
+
+Present the PR URL and **stop**:
+
+> "PR ready for review: **<PR URL>**
+> Please check the diff and reply **'approved'** (or **'LGTM'**) to merge, or describe any changes needed."
+
+Do **not** merge until the user explicitly approves.
+
+If changes are requested: make them on the same branch, push, and repeat the approval request.
+
+### Step 7: Merge and Report
+
+Once the user approves:
+
+```bash
+gh pr merge --squash --delete-branch
+git -C "$SKILLS_DIR" pull
 git -C "$SKILLS_DIR" log --oneline -4
 ```
 
 Report:
-- Issues filed (numbers and titles)
+- Issues closed (numbers and titles)
 - Files changed / created
-- Commit SHA
-- Any findings NOT auto-fixed (domain-specific code that needs manual extraction) — flag explicitly
+- Merged commit SHA
+- Any findings NOT auto-fixed — flag for manual follow-up
 
 ## Audit Checklist Quick Reference
 
