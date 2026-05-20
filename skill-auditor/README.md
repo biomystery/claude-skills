@@ -22,8 +22,12 @@ flowchart TD
     E -->|None| F(["Done\nAll skills pass audit ✓"])
     E -->|Yes| G[Group by theme\nfile one gh issue per theme]
     G --> H[Implement all fixes\nEdit · Write · split files\nextract scripts · add callouts]
-    H --> I[git add · verify status\ngit commit closes #N…\ngit push]
-    I --> J(["Done\nAll issues auto-closed"])
+    H --> I[Commit on branch\ngit checkout -b · git commit\ngit push · gh pr create]
+    I --> J{HITL review\nshow PR URL · wait}
+    J -->|Changes requested| K[Fix on same branch\ngit commit · git push]
+    K --> J
+    J -->|Approved| L[gh pr merge --squash\ngit pull]
+    L --> M(["Done\nAll issues auto-closed"])
 ```
 
 ## Install
