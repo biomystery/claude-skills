@@ -31,7 +31,7 @@ flowchart TD
     I --> H
     H -->|Clean| J[Update repo README\nadd row to skills table]
 
-    J --> K[Single clean commit\ngit add · verify status\ngit commit · git push main]
+    J --> K[Single clean commit\ngit add · verify status\ngit commit · git push]
 
     K --> L{Push clean?}
     L -->|Yes| M(["Done\nskill live on GitHub"])
