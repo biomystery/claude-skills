@@ -39,20 +39,7 @@ Read the file provided by the user.
 cat -n "<file_path>"
 ```
 
-### Step 2: Privacy Scan
-
-Before doing anything else, scan for PII and sensitive content:
-
-| Risk | What to look for | Action |
-|---|---|---|
-| Real names | Full names of non-public individuals | Flag to user — ask whether to anonymize or keep |
-| Contact info | Emails, phone numbers | Remove unless user says keep |
-| Org-internal names | Proprietary system/project names | Ask user if safe to include |
-| Identifying paths | `/Users/<real-name>/...` | Replace with `~/...` |
-
-Report any findings to the user before proceeding.
-
-### Step 3: HITL — Flag Ambiguous Content
+### Step 2: HITL — Flag Ambiguous Content
 
 Before editing, identify items that are unclear and would require interpretation. Present them as a numbered list:
 
@@ -68,7 +55,7 @@ Wait for the user's answers. Do not guess or skip this step.
 
 If nothing is ambiguous, state: "No ambiguous items found — proceeding with cleanup."
 
-### Step 4: Apply Cleanup
+### Step 3: Apply Cleanup
 
 Apply changes according to the requested `--level`. Use the user's HITL answers to resolve ambiguous items.
 
@@ -96,7 +83,7 @@ Apply changes according to the requested `--level`. Use the user's HITL answers 
 - Translate between languages
 - Remove content (except confirmed PII)
 
-### Step 5: Write Output
+### Step 4: Write Output
 
 Write the cleaned note as `<original-filename>_clean.md` in the same folder as the source file.
 

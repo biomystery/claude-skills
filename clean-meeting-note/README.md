@@ -7,7 +7,6 @@ Takes a raw shorthand meeting note and produces a clean version — preserving t
 - Fixes typos and capitalization of proper nouns
 - Optionally reorders sections and repairs bullet hierarchy
 - Flags ambiguous shorthand and asks for clarification before editing (HITL)
-- Scans for PII and confirms removal with the user
 - Writes output as `<original-name>_clean.md` in the same folder
 
 ## Cleanup Levels
@@ -24,28 +23,23 @@ Takes a raw shorthand meeting note and produces a clean version — preserving t
 flowchart TD
     A(["#quot;/clean-meeting-note [--level N] file.md#quot;"])
     B["Read the raw note"]
-    C{"PII found?"}
-    D["Flag to user → confirm removal"]
-    E["Identify ambiguous items"]
-    F{"Any ambiguous\nitems?"}
-    G["Present list → wait for answers"]
-    H["Apply cleanup at requested level"]
-    I["Write output: original_clean.md"]
-    J["Report diff summary"]
-    K(["Done\noriginal_clean.md written"])
+    C["Identify ambiguous items"]
+    D{"Any ambiguous\nitems?"}
+    E["Present list → wait for answers"]
+    F["Apply cleanup at requested level"]
+    G["Write output: original_clean.md"]
+    H["Report diff summary"]
+    I(["Done\noriginal_clean.md written"])
 
     A --> B
     B --> C
-    C -->|Yes| D
-    C -->|No| E
-    D --> E
+    C --> D
+    D -->|Yes| E
+    D -->|No| F
     E --> F
-    F -->|Yes| G
-    F -->|No| H
+    F --> G
     G --> H
     H --> I
-    I --> J
-    J --> K
 ```
 
 ## Install
