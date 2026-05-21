@@ -18,6 +18,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [tax-draft-review](tax/tax-draft-review/) | `/tax-draft-review` | Audit a U.S. Form 1040 draft return against known income documents — catches missing 1099-Rs, wrong IRA basis, omitted Schedule C deductions, and SALT errors before filing |
 | [schedule-c-tracker](tax/schedule-c-tracker/) | `/schedule-c-tracker` | Build a complete Schedule C from bank exports and receipts — reconciles gross income, categorizes deductions (home office, Section 179, phone/internet), and outputs ready-to-file line values with SE tax and QBI estimates |
 | [skill-auditor](skill-auditor/) | `/skill-auditor` | Audit all skills in a repo against the official best-practices doc — files themed GitHub issues and implements every fix (description voice, line count, $SKILL_DIR, inline scripts, stale constants) in one clean commit |
+| [clean-meeting-note](clean-meeting-note/) | `/clean-meeting-note` | Clean a raw shorthand meeting note — fixes typos, repairs structure, flags ambiguous content for HITL clarification, removes PII, and writes `_clean.md` at a chosen detail level (1–3) |
 
 ## What is a Claude Code Skill?
 
