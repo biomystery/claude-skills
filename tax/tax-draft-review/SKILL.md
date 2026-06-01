@@ -132,7 +132,8 @@ SALT cap:
 
 If itemized > standard deduction → itemizing is correct.
 Standard deductions (MFJ): 2024: $29,200 | 2025: $31,500
-⚠️ Verify SALT cap and standard deduction for the filing year — both change annually.
+
+> ⚠️ Figures above are for **2024–2025**. SALT cap and standard deduction both change annually — verify in IRS Rev. Proc. for the actual filing year.
 ```
 
 #### 4b: QBI Deduction (Form 8995)

@@ -16,6 +16,8 @@ Works for both spouses independently (each files their own Form 8606).
 - Reviewing a tax return draft and suspecting an IRA error
 - AGI exceeds the Roth IRA direct contribution limit (~$240K MFJ in 2025) and you used the nondeductible Traditional IRA → conversion route
 
+> ⚠️ The AGI phase-out threshold above is for **2025**. Verify the current limit in IRS Pub 590-A before applying to other tax years.
+
 ## Instructions
 
 ### Step 0: Gather Inputs

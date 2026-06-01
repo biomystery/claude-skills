@@ -1,6 +1,6 @@
 ---
 name: logseq-to-obsidian
-description: Migrate a Logseq vault (journals, pages, assets) into an Obsidian vault — converts filenames, cleans Logseq-specific syntax, converts page properties to YAML frontmatter, resolves iCloud conflict copies, removes empty files, and backfills created/updated timestamps from source mtimes.
+description: Migrates a Logseq vault (journals, pages, assets) into an Obsidian vault — converts filenames, cleans Logseq-specific syntax, converts page properties to YAML frontmatter, resolves iCloud conflict copies, removes empty files, and backfills created/updated timestamps from source mtimes. Use when moving a Logseq graph to Obsidian, or cleaning up a partially migrated vault.
 user-invocable: true
 ---
 
@@ -57,6 +57,7 @@ Report the counts to the user and confirm they want to proceed.
 Run the script in dry-run mode to preview what will happen without writing anything:
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/logseq-to-obsidian/SKILL.md)")"
 python3 "$SKILL_DIR/scripts/logseq_migrate.py" \
     "<logseq_root>" \
     "<obsidian_root>"

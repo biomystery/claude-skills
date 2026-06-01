@@ -127,6 +127,9 @@ When a field isn't directly in the extracted text, compute it:
 - `Deduction Type`: if deduction amount > standard deduction for that year/status → Itemized; otherwise → Standard
 
 **Standard deduction reference (MFJ)**:
+
+> ⚠️ Table below covers **2018–2024**. Extend for later years using IRS Rev. Proc. (published each October). Verify amounts against official publications before using for a specific return.
+
 | Year | Std Deduction |
 |------|--------------|
 | 2018 | $24,000 |

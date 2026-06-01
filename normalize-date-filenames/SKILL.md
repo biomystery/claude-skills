@@ -1,6 +1,6 @@
 ---
 name: normalize-date-filenames
-description: Normalize dated filenames in a folder to YYYY-MM-DD-<time-or-desc>.ext — handles Office Lens, Microsoft Lens, "Scan from", compact MDY dates, and ISO dates. Dry-runs first, then optionally deletes .pptx/.docx duplicates when a .pdf counterpart exists.
+description: Normalizes dated filenames in a folder to YYYY-MM-DD-<time-or-desc>.ext — handles Office Lens, Microsoft Lens, "Scan from", compact MDY dates, and ISO dates. Dry-runs first, then optionally deletes .pptx/.docx duplicates when a .pdf counterpart exists. Use when a scanned-documents folder has mixed naming from multiple scanner apps or manual conventions.
 user-invocable: true
 ---
 

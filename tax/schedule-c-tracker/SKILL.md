@@ -72,7 +72,7 @@ For each expense the user provides, map to the correct Schedule C line:
 | Expense Type | Schedule C Line | Notes |
 |---|---|---|
 | Advertising, marketing | Line 8 | |
-| Car / truck (mileage) | Line 9 | Compute: miles × IRS rate (67¢/mile for 2024, 70¢ for 2025) |
+| Car / truck (mileage) | Line 9 | Compute: miles × IRS rate (67¢/mile for 2024, 70¢ for 2025) — ⚠️ verify current rate in IRS Notice each January |
 | Commissions paid to others | Line 10 | |
 | Contract labor | Line 11 | If paid > $600, may need 1099-NEC |
 | Legal / professional fees | Line 17 | |
@@ -183,6 +183,7 @@ SE net earnings = Line 31 × 92.35%  (×0.9235)
 
 SE tax = SE net earnings × 15.3%
   (12.4% Social Security on first $176,100 of SE earnings in 2025 + 2.9% Medicare)
+  ⚠️ SS wage base for 2025; verify in IRS Rev. Proc. for other tax years.
 
 Additional Medicare surtax (0.9%) applies if:
   W-2 + SE income > $250,000 MFJ / $200,000 single
