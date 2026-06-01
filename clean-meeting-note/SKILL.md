@@ -1,6 +1,6 @@
 ---
 name: clean-meeting-note
-description: Clean a raw shorthand meeting note into a structured md file — preserves author voice, asks before touching ambiguous content (HITL), removes PII, and accepts a detail level parameter (1–3).
+description: Cleans a raw shorthand meeting note into a structured md file — preserves author voice, asks before touching ambiguous content (HITL), removes PII, and accepts a detail level parameter (1–3). Use when tidying a meeting note before archiving or sharing, or when shorthand needs resolving.
 user-invocable: true
 ---
 
