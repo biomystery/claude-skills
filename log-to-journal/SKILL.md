@@ -1,0 +1,143 @@
+---
+name: log-to-journal
+description: Append a timestamped entry to today's Obsidian daily journal following vault conventions — resolves the YYYY/YYYY-WXX/YYYY-MM-DD.md path, inserts under the right section (Life/Work/Study) in reverse-chronological order, bumps the frontmatter updated: stamp, and handles the iCloud linter race and Unicode characters that break exact-string edits. Use whenever the user does meaningful work (decisions, purchases, fixes, errands) that should be recorded in the daily note.
+user-invocable: true
+---
+
+# Log to Journal
+
+Appends one concise, timestamped entry to the user's Obsidian **daily journal**, following the vault's logging conventions exactly. Resolves the correct dated file path, inserts the entry into the right section in reverse-chronological order, links related notes with `[[wikilinks]]`, and updates the frontmatter `updated:` timestamp. Built for a vault where raw daily records live in `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`.
+
+## When to Use
+
+- The user just did something worth recording: a decision, purchase, booking, errand, fix, or research result
+- The user explicitly says "log this", "add to journal", "记录到 journal"
+- You finished a task and the vault's CLAUDE.md asks you to proactively log meaningful work
+
+## Core Rules (non-negotiable)
+
+| Rule | Why |
+|---|---|
+| **Time comes FIRST** in every entry: `08:02 ⚽ ...` — never `⚽ 08:02` | Vault convention; the timestamp is the sort key |
+| **Reverse-chronological within a section** — newer timestamps go **above** older ones | Vault convention; most recent work is read first |
+| Get the time from `date "+%H:%M"`, never guess | Entries must reflect the real clock |
+| Keep entries concise; nest sub-bullets for detail | Journal is a log, not a document |
+| Link related notes with `[[wikilinks]]` | Keeps the daily note woven into the vault |
+| Bump frontmatter `updated:` after editing | Keeps Obsidian metadata honest |
+| Re-read the file immediately before editing | The iCloud/Obsidian linter rewrites files between read and edit |
+
+## Instructions
+
+### Step 0: Resolve the journal file path
+
+The daily note lives at `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md` where `WXX` is the **ISO week number**. Compute all three from today's date:
+
+```bash
+VAULT="${VAULT_DIR:-$PWD}"          # repo root / vault root
+DATE=$(date "+%Y-%m-%d")
+YEAR=$(date "+%Y")
+WEEK=$(date "+%Y-W%V")              # ISO week, e.g. 2026-W24
+TIME=$(date "+%H:%M")
+JOURNAL="$VAULT/Journals/$YEAR/$WEEK/$DATE.md"
+echo "$JOURNAL" && ls -la "$JOURNAL"
+```
+
+> `%V` is the ISO-8601 week number (matches Obsidian's default). Use it, not `%U` or `%W`.
+
+If the file does not exist, the vault's Calendar plugin normally creates it from a template. Create a minimal one only if the user confirms — otherwise stop and ask.
+
+### Step 1: Read the file and pick the section
+
+Read the journal. Daily notes have these `##` sections — choose by entry type:
+
+| Section | What goes here |
+|---|---|
+| `## 🏠 Life` | Home, errands, purchases, family, health, personal admin |
+| `## 💼 Work` | Job / employer tasks |
+| `## 📖 Study` | Learning, reading, research for self-education |
+
+When in doubt, default to `🏠 Life`. If the user named a section, use that.
+
+### Step 2: Compose the entry
+
+Format: `HH:MM <emoji> <text>`, with optional nested sub-bullets for detail.
+
+```
+- 14:44 🛒 HD 购入新热水器 — Rheem XG50T12HN38U2（50gal, 12年质保）
+	- $979 + 税 $75.87 = **$1,054.87**，Pickup 免费
+	- 下一步：找水工安装
+```
+
+- The emoji is optional but matches the vault's visual style (🛒 purchase, 🔧 fix, ✅ done, 🚗 car, 💰 finance, 📄 new doc, ☎️ call).
+- Use `**bold**` for key figures/outcomes; `[[wikilinks]]` for related notes, people, dates.
+- Indent sub-bullets with a **tab**, not spaces (matches existing entries).
+
+### Step 3: Insert in reverse-chronological position
+
+Within the chosen section, find where the new `HH:MM` belongs so that **newer is higher**:
+- Newer than every existing entry → insert as the **first** bullet under the section header.
+- Otherwise → insert immediately **above** the first existing entry whose time is **earlier** than the new one.
+
+Prefer the `Edit` tool, anchoring on the existing bullet you're inserting above/below.
+
+### Step 4: Handle the two edge cases that break `Edit`
+
+These bit the original session — expect them:
+
+**A. Linter race** — *"File has been modified since read."* The iCloud/Obsidian linter rewrites the file (e.g. bumps `updated:`) between your Read and Edit. **Fix:** Read the file again, then immediately Edit.
+
+**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script for an exact byte-level replace:
+
+```bash
+python3 "$SKILL_DIR/scripts/journal_insert.py" \
+  --file "$JOURNAL" \
+  --anchor "- 13:07 🔧 [[Logseq-Import/Pages/gas heater|热水器]]" \
+  --position before \
+  --text $'- 20:00 ✅ [[...]] 新机安装完成\n\t- 安装费 \$690'
+```
+
+The script reads/writes UTF-8 directly and inserts relative to an anchor line (substring match), sidestepping the Edit tool's string normalization. See `scripts/journal_insert.py`.
+
+### Step 5: Bump the frontmatter `updated:` timestamp
+
+Set the YAML `updated:` field to now (the linter often does this for you, but do it explicitly if it didn't):
+
+```
+updated: 2026-06-13T20:00
+```
+
+### Step 6: Report
+
+Tell the user the time, section, and a one-line summary of what was logged. Don't paste the whole file back.
+
+## Example Invocations
+
+```
+/log-to-journal bought a new water heater, Rheem XG50T12HN38U2, $1,054.87
+```
+→ Inserts a `🛒` entry under `🏠 Life` at the current time, in reverse-chronological order.
+
+```
+/log-to-journal
+```
+→ After finishing a task; reconstructs what was done this session and logs it.
+
+## Output
+
+One timestamped bullet (plus optional sub-bullets) inserted into today's `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, with the frontmatter `updated:` field bumped.
+
+## Requirements
+
+- An Obsidian vault using the `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md` daily-note layout
+- `date` with `%V` ISO-week support (GNU/BSD date both work)
+- `python3` for the Unicode-safe insert fallback
+
+## Skill Structure
+
+```
+log-to-journal/
+├── SKILL.md
+├── README.md
+└── scripts/
+    └── journal_insert.py
+```
