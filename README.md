@@ -20,6 +20,8 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [skill-auditor](skill-auditor/) | `/skill-auditor` | Audit all skills in a repo against the official best-practices doc — files themed GitHub issues and implements every fix (description voice, line count, $SKILL_DIR, inline scripts, stale constants) in one clean commit |
 | [clean-meeting-note](clean-meeting-note/) | `/clean-meeting-note` | Clean a raw shorthand meeting note — fixes typos, repairs structure, flags ambiguous content for HITL clarification, removes PII, and writes `_clean.md` at a chosen detail level (1–3) |
 | [normalize-date-filenames](normalize-date-filenames/) | `/normalize-date-filenames` | Normalize dated filenames (Office Lens, Microsoft Lens, "Scan from", compact MDY) to YYYY-MM-DD-<time-or-desc>.ext — dry-runs first, optionally deduplicates .pptx/.docx when a .pdf exists |
+| [vault-entity-note](vault-entity-note/) | `/vault-entity-note` | Synthesize a structured Obsidian reference note about a real-world entity (house, car, account, policy) by merging user facts, public web records, and portal-pulled data — classifies the folder, labels every source, marks estimates, cross-links, and logs to the daily journal |
+| [browser-quote-shop](browser-quote-shop/) | `/browser-quote-shop` | Use the Playwright MCP browser to shop one item across multiple online providers and compile a sorted comparison table — classifies each outcome, captures quote IDs, and handles form gotchas (address autocomplete, press-and-hold CAPTCHAs, ng-select multi-selects, broker auto-pull) |
 
 ## What is a Claude Code Skill?
 
