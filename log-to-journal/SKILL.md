@@ -25,6 +25,7 @@ Appends one concise, timestamped entry to the user's Obsidian **daily journal**,
 | Link related notes with `[[wikilinks]]` | Keeps the daily note woven into the vault |
 | Bump frontmatter `updated:` after editing | Keeps Obsidian metadata honest |
 | Re-read the file immediately before editing | The iCloud/Obsidian linter rewrites files between read and edit |
+| **If today's log already has the entry, enrich it in place** — append sub-bullets via `journal_insert.py --anchor <existing line> --position after`; don't add a duplicate timestamped bullet | Following up on earlier work should extend that entry, not create a redundant one |
 
 ## Instructions
 
