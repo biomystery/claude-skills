@@ -21,7 +21,7 @@ Appends one concise, timestamped entry to the user's Obsidian **daily journal**,
 | **Time comes FIRST** in every entry: `08:02 ⚽ ...` — never `⚽ 08:02` | Vault convention; the timestamp is the sort key |
 | **Reverse-chronological within a section** — newer timestamps go **above** older ones | Vault convention; most recent work is read first |
 | Get the time from `date "+%H:%M"`, never guess | Entries must reflect the real clock |
-| Keep entries concise; nest sub-bullets for detail | Journal is a log, not a document |
+| **Headline + detail split**: the top bullet is only `HH:MM <emoji> <short title>`; put ALL details in a nested sub-bullet underneath — even a single detail goes on its own sub-line | User's preferred style; keeps the section scannable |
 | Link related notes with `[[wikilinks]]` | Keeps the daily note woven into the vault |
 | Bump frontmatter `updated:` after editing | Keeps Obsidian metadata honest |
 | Re-read the file immediately before editing | The iCloud/Obsidian linter rewrites files between read and edit |
@@ -61,13 +61,18 @@ When in doubt, default to `🏠 Life`. If the user named a section, use that.
 
 ### Step 2: Compose the entry
 
-Format: `HH:MM <emoji> <text>`, with optional nested sub-bullets for detail.
+**Two-line style (required):** the headline bullet is only `HH:MM <emoji> <short title>` — a few words, no details, no `—`-appended prose. Every detail goes in a **nested sub-bullet** below it, even when there's just one.
 
 ```
-- 14:44 🛒 HD 购入新热水器 — Rheem XG50T12HN38U2（50gal, 12年质保）
-	- $979 + 税 $75.87 = **$1,054.87**，Pickup 免费
+- 14:44 🛒 HD 购入新热水器
+	- Rheem XG50T12HN38U2（50gal, 12年质保）$979 + 税 $75.87 = **$1,054.87**，Pickup 免费
 	- 下一步：找水工安装
+
+- 16:20 🏦 US Bank 注资开始
+	- 从 Discover 转了 **$3,000**（当日 instant 额度已满）；绑定 checking (7377)，等 trial deposits 确认（~7/10）。剩 **~$22k** 待转（8/6 前存满 $25k）
 ```
+
+Don't cram the description onto the headline line (`- 14:44 🛒 HD 购入新热水器 — Rheem…`) — split it.
 
 - The emoji is optional but matches the vault's visual style (🛒 purchase, 🔧 fix, ✅ done, 🚗 car, 💰 finance, 📄 new doc, ☎️ call).
 - Use `**bold**` for key figures/outcomes; `[[wikilinks]]` for related notes, people, dates.
