@@ -27,6 +27,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [log-to-journal](log-to-journal/) | `/log-to-journal` | Append a timestamped entry to today's Obsidian daily journal (Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md) following vault conventions — picks the right section, inserts time-first in reverse-chronological order, links `[[wikilinks]]`, bumps `updated:`, and handles the iCloud linter race + Unicode characters that break exact-string edits |
 | [epub-to-kindle](epub-to-kindle/) | `/epub-to-kindle` | Convert an EPUB (or any Calibre-supported ebook) to a Kindle format — AZW3 (modern) or MOBI (legacy) — via Calibre's ebook-convert; auto-locates the CLI inside the macOS .app bundle, installs Calibre through Homebrew if missing, and surfaces the exact sudo chown command when /opt/homebrew permissions block the install |
 | [morning-plan](morning-plan/) | `/morning-plan` | Morning planning routine for an Obsidian vault — retroactively logs yesterday's activities, identifies today's MITs (caveman mode), schedules urgent todos via `⏳` on the weekly note, and surfaces imminent deadlines |
+| [review-week](review-week/) | `/review-week` | Review the past week's Obsidian daily journal entries, synthesize them by thread into last week's weekly-note retrospective (Wins/Challenges/Lessons), and roll only the still-open items into the current week's priorities — resolves week boundaries from frontmatter dates, not a guessed week number |
 
 ## What is a Claude Code Skill?
 
