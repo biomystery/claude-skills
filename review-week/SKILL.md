@@ -1,6 +1,6 @@
 ---
 name: review-week
-description: Review the past week's Obsidian daily journal entries, synthesize them by theme into the weekly note's Wins/Challenges/Lessons retrospective (split 重要 vs 琐事), and roll any unresolved loose ends forward into the current week's priorities list. Use for "review my past week", "weekly review", "close out this week", or "什么 open 了 roll 到这周".
+description: Reviews the past week's Obsidian daily journal entries, synthesizes them by theme into the weekly note's Wins/Challenges/Lessons retrospective (split 重要 vs 琐事), and rolls any unresolved loose ends forward into the current week's priorities list. Use when the user says "review my past week", "weekly review", "close out this week", or "什么 open 了 roll 到这周".
 argument-hint: "[just do it]"
 user-invocable: true
 ---
@@ -32,6 +32,7 @@ Reads every daily journal entry in the past week, groups them into threads (not 
 ### Step 0: Resolve the current and past week's files
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/review-week/SKILL.md)")"
 VAULT="${VAULT_DIR:-$PWD}"
 python3 "$SKILL_DIR/scripts/find_week_files.py" --vault "$VAULT"
 ```
