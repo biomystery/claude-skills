@@ -28,6 +28,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [epub-to-kindle](epub-to-kindle/) | `/epub-to-kindle` | Convert an EPUB (or any Calibre-supported ebook) to a Kindle format — AZW3 (modern) or MOBI (legacy) — via Calibre's ebook-convert; auto-locates the CLI inside the macOS .app bundle, installs Calibre through Homebrew if missing, and surfaces the exact sudo chown command when /opt/homebrew permissions block the install |
 | [morning-plan](morning-plan/) | `/morning-plan` | Morning planning routine for an Obsidian vault — retroactively logs yesterday's activities, identifies today's MITs (caveman mode), schedules urgent todos via `⏳` on the weekly note, and surfaces imminent deadlines |
 | [review-week](review-week/) | `/review-week` | Review the past week's Obsidian daily journal entries, synthesize them by thread into last week's weekly-note retrospective (Wins/Challenges/Lessons), and roll only the still-open items into the current week's priorities — resolves week boundaries from frontmatter dates, not a guessed week number |
+| [project-mgr](project-mgr/) | `/project-mgr` | Build an active Obsidian project from a one-line goal under `Projects/Doing/` — success criteria, workstreams, `#task` next actions, privacy-safe cross-links, and a daily-journal announcement |
 
 ## What is a Claude Code Skill?
 
