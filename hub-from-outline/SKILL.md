@@ -58,13 +58,11 @@ for the full mapping per domain.
 
 ## Instructions
 
-### Step 0: Resolve paths and flags
+### Step 0: Resolve arguments
 
-```bash
-SKILL_DIR="${SKILL_DIR:-$HOME/.claude/skills/hub-from-outline}"
-VAULT="${VAULT_DIR:-$PWD}"
-NOW=$(date "+%Y-%m-%dT%H:%M")
-```
+Shell variables do not survive between Bash calls — define them in the same block
+that uses them. Timestamps for `created:` / `updated:` come from
+`date "+%Y-%m-%dT%H:%M"` run in the block that writes the file.
 
 From the user message, capture:
 
@@ -77,26 +75,37 @@ From the user message, capture:
 | `--index-only` | Module index rows only, no stub files | off |
 | `--mermaid` | Add outline-index Mermaid on hub (+ optionally the Track page) | off unless asked |
 | `--periods` (alias `--weeks`) | Build a Period index from the dated outline | on if dates present |
-| `--period-label <Week\|Day\|Block\|Sprint>` | Names the folder and file prefix | `Week` → `Weeks/`, `Wxx` |
+| `--period-label <Week\|Day\|Block\|Sprint>` | Names the period folder and file prefix | `Week` |
 | Parent profile | Optional `[[Person]]` hub to update | ask if obvious |
+
+**Period naming is derived from `--period-label`, once, and used everywhere:**
+
+| Label | Folder | File prefix | Example |
+|---|---|---|---|
+| `Week` (default) | `Weeks/` | `W` | `Weeks/W01 2026-09-07.md` |
+| `Day` | `Days/` | `D` | `Days/D01 2026-09-07.md` |
+| `Block` | `Blocks/` | `B` | `Blocks/B01 2026-09-07.md` |
+| `Sprint` | `Sprints/` | `S` | `Sprints/S01 2026-09-07.md` |
+
+The templates write `Pxx` as a placeholder — substitute the derived prefix before
+writing any file or index row. Never emit a literal `P01` or a literal `Periods/`.
 
 ### Step 0.5: Syntax layer (optional delegation)
 
-Every file written here is Obsidian Flavored Markdown. Check once:
+Every file written here is Obsidian Flavored Markdown. Check the available-skills
+listing already in context — no Bash call, and it reflects skills from every source
+(personal, project, plugin), which a directory check does not.
 
-```bash
-ls "$HOME/.claude/skills/obsidian-markdown" >/dev/null 2>&1 && echo available
-```
-
-- **Available** → use `/obsidian-markdown` for any syntax decision beyond the crib
-  below (property types, callout types, embed and block-reference forms). Do not
-  restate its rules; invoke it.
-- **Not available** → stay inside this crib, which covers everything this skill emits:
+- **`obsidian-markdown` is listed** → invoke it with the Skill tool for any syntax
+  decision beyond the crib below (property types, callout types, embed and
+  block-reference forms). Do not restate its rules. It is not user-invocable, so
+  there is no `/obsidian-markdown` command to call.
+- **Not listed** → stay inside this crib, which covers everything this skill emits:
 
 ```markdown
 ---
 created: 2026-01-01T09:00     # frontmatter properties
-tags: [course, hub]
+tags: [<domain>, hub]
 ---
 [[Note]] · [[Note|Alias]] · [[Modules/M01 Title|open]]   # wikilinks
 ![[Note#Heading]]                                        # embed a section
@@ -110,11 +119,26 @@ Unresolved wikilinks are intentional here — clicking one creates the Period no
 #### Strategy A — Local PDF with a text layer
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/hub-from-outline/SKILL.md)")"
 python3 "$SKILL_DIR/scripts/extract_outline_text.py" "<path-to-outline.pdf>"
 ```
 
-Add `--pages 1-4` to limit long documents. Exit code 2 means there is no usable text
-layer → Strategy B.
+Add `--pages 1-4` to limit long documents. Read the exit code:
+
+| Exit | Meaning | Next |
+|---|---|---|
+| 0 | Text extracted | Parse it — but if it is mojibake, dropped letters, or otherwise garbled, treat it as unusable and go to Strategy B anyway |
+| 2 | No text layer anywhere | Strategy B |
+| 3 | Bad arguments or unreadable file | Fix the invocation (the message names the problem) or ask the user for another export |
+
+#### Strategy A′ — Remote outline
+
+```bash
+curl -sL "<url>" -o /tmp/outline.pdf   # then Strategy A
+```
+
+For an HTML syllabus page rather than a PDF, WebFetch it and ask for every unit and
+lesson heading with its numbering — not a summary — then continue at Strategy C.
 
 #### Strategy B — Image-only / scanned PDF
 
@@ -174,14 +198,16 @@ Period index rules:
 
 - One row per calendar session date
 - Closures: `🚫` + reason, **no file**
-- Live rows link `[[<Periods>/<Pxx YYYY-MM-DD>|Pxx]]` even when the file does not exist
-  yet — except the first, which is created as a stub
+- Live rows link `[[<folder>/<prefix>xx YYYY-MM-DD|<prefix>xx]]` — e.g.
+  `[[Weeks/W02 2026-09-14|W02]]` — even when the file does not exist yet, except the
+  first, which is created as a stub
 - Always `YYYY-MM-DD` in filenames
 
 ### Step 5: Templates and stubs
 
-Write `Modules/_Template.md` and, when dated, `<Periods>/_Template.md` from
-[reference/templates.md](reference/templates.md).
+Write `Modules/_Template.md` and, when dated, `<folder>/_Template.md` (e.g.
+`Weeks/_Template.md`) from [reference/templates.md](reference/templates.md),
+substituting the derived period folder and prefix for the `Pxx` placeholders.
 
 Default stubs:
 
@@ -270,9 +296,10 @@ Plus optional parent-profile and journal links.
 ## Requirements
 
 - Obsidian vault (wikilinks, callouts, optional Mermaid)
-- `python3`; `pypdf` for PDF text extraction — the extract script installs it with
-  `pip install --user pypdf` when missing
-- Optional: `/obsidian-markdown` for syntax beyond the Step 0.5 crib
+- `python3`; `pypdf` for PDF text extraction — the extract script attempts the
+  install itself, falling back to `--break-system-packages` on PEP 668 environments
+  (Homebrew and most distro pythons), and prints pipx/venv instructions if that fails
+- Optional: the `obsidian-markdown` skill for syntax beyond the Step 0.5 crib
 - Optional: `/log-to-journal` when logging into a Journals-style vault
 
 ## Skill Structure

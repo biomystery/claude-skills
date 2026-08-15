@@ -19,7 +19,7 @@ each kind of outline, and what changes per domain.
 |---|---|---|---|---|---|
 | **Hub** | school / academy | the book | the discipline | the program | the initiative |
 | **Track** | class section (`CH4-1`) | this reading run | current level / belt | this edition / year | this phase set |
-| **Module** | unit | part / chapter | level | track / theme | workstream |
+| **Module** | unit | part / chapter | level | theme / strand | workstream |
 | **Item** | lesson | section | skill / drill | session / talk | deliverable |
 | **Period** | class week | reading week | training block | conference day | sprint |
 

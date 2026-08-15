@@ -1,15 +1,21 @@
 # Note templates
 
-Skeletons for every file this skill writes. Adapt headings to the domain (see
-[domain-profiles.md](domain-profiles.md)); keep the section order, since the
-indexes on the Hub and Track pages assume it.
+Skeletons for every file this skill writes. Domain vocabulary is in SKILL.md.
+
+**Keep the section names and order exactly as written** — SKILL.md Steps 3–5 audit
+against them, and the Hub/Track indexes assume them. Domain wording belongs in the
+prose inside a section, never in its heading.
+
+`Pxx` is a placeholder for the period prefix derived from `--period-label`
+(`W01`, `D01`, `B01`, `S01`); `<folder>` is the matching folder (`Weeks/`, `Days/`,
+…). Substitute both before writing anything. Never emit a literal `P01`.
 
 ## Contents
 
 - Hub note
 - Track note
 - `Modules/_Template.md`
-- `Periods/_Template.md`
+- `<folder>/_Template.md` (period)
 - Module stub (`M01 ….md`)
 - Status legend
 
@@ -32,7 +38,7 @@ aliases: [<short name>]
 ## Tracks
 | Track | Who / when | Status |
 |---|---|---|
-| [[<Track>]] | <person or run> | 🟢 active |
+| [[<Track>]] | <person or run> | 📝 |
 
 ## Contact & location
 <address, portal, contacts — no credentials>
@@ -79,8 +85,12 @@ tags: [<domain>, track]
 ## Period index
 | Period | Date | Focus | Status |
 |---|---|---|---|
-| P01 | <YYYY-MM-DD> | <module/topic> | ⬜ |
+| [[<folder>/Pxx <YYYY-MM-DD>\|Pxx]] | <YYYY-MM-DD> | <module/topic> | ⬜ |
 | — | <YYYY-MM-DD> | 🚫 <closure reason> | 🚫 |
+
+Every live row is a wikilink, including periods whose file does not exist yet —
+clicking the unresolved link is how the note gets created later. Closure rows are
+plain text with no link.
 
 ## Materials & logistics
 <books, kit, fees, portal links>
@@ -121,7 +131,7 @@ tags: [<domain>, module]
 [[<Track>]] · [[<Hub>]]
 ```
 
-## `Periods/_Template.md`
+## `<folder>/_Template.md` (period)
 
 ```markdown
 ---
@@ -132,25 +142,30 @@ tags: [<domain>, period]
 
 # <Pxx YYYY-MM-DD>
 
-- **Attended:** <yes/no>
+- **Participated:** <yes/no — attended, read, trained, shipped>
 - **Module:** [[Modules/<Mxx …>]]
 
 ## Focus
-<what was covered>
+<what this period covered>
 
 ## Assignments
 | Task | Due | Done |
 |---|---|---|
 
-## Notes from the lead
-<email/handout summary>
+## Notes from the source
+<whatever carries the period's information: instructor email, handout, chapter
+notes, standup, session recording>
 
-## Practice at home
+## Follow-up before the next period
 - [ ] <item>
 
 ## Next
-[[<P(xx+1) YYYY-MM-DD>]]
+[[<folder>/<Pxx+1> <YYYY-MM-DD>]]
 ```
+
+The four body sections are deliberately generic. Reword the *content* per domain
+(a conference Day has speakers where a class Week has homework); do not rename the
+headings.
 
 ## Module stub
 

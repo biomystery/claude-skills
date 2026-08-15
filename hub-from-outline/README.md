@@ -27,8 +27,8 @@ Per-domain mappings live in [reference/domain-profiles.md](reference/domain-prof
 - Adds a dated period index + template when the outline is calendar-based (creates the
   **first** period note only)
 - Optionally draws a **Mermaid outline-index graph** (`--mermaid`)
-- Delegates Obsidian syntax to `/obsidian-markdown` and journal writes to
-  `/log-to-journal` when those skills are installed
+- Delegates Obsidian syntax to the `obsidian-markdown` skill and journal writes to
+  `/log-to-journal` when those skills are available
 
 ## Workflow
 
@@ -77,8 +77,8 @@ python3 -m pip install --user pypdf
 | Flag | Effect |
 |---|---|
 | `--mermaid` | Hub (optionally Track) Mermaid outline-index graph |
-| `--periods` (alias `--weeks`) | Force a period index even if dates are sparse |
-| `--period-label <Week\|Day\|Block\|Sprint>` | Names the period folder and file prefix |
+| `--periods` (alias `--weeks`) | Build a period index — on by default when the outline has dates, so pass it only to force one when dates are sparse |
+| `--period-label <Week\|Day\|Block\|Sprint>` | Names the period folder and file prefix: `Week` → `Weeks/W01 …`, `Day` → `Days/D01 …` |
 | `--index-only` | Do not create `Modules/Mxx` stub files |
 
 ## Output
@@ -112,7 +112,7 @@ flowchart TD
 
 - Obsidian vault with wikilinks / callouts (Mermaid optional)
 - `python3` + `pypdf` for PDF text extraction
-- Optional: `/obsidian-markdown` for Obsidian syntax beyond the inline crib
+- Optional: the `obsidian-markdown` skill for Obsidian syntax beyond the inline crib
 - Optional: `/log-to-journal` when the target vault logs daily notes that way
 
 ## Supported inputs / edge cases
@@ -121,6 +121,8 @@ flowchart TD
 |---|---|
 | Text-layer PDF | `pypdf` extract → parse Modules |
 | Scanned / image PDF | Script exits 2 with a per-page char report → paste or read rendered images |
+| Sparse cover page selected via `--pages` | Script exits 3 naming the pages that *do* carry text, instead of misreporting the PDF as a scan |
+| Garbled extract (mojibake, dropped math glyphs) | Exit 0 but unusable — treat as image-only and fall back |
 | Welcome-letter calendar | Prefer dates; closures as `🚫` rows |
 | "W1–W31" vs actual session count mismatch | Index by **date**; note the numbering drift on the hub |
 | No dates | Modules only; skip periods |
