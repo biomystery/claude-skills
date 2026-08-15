@@ -20,11 +20,18 @@ Usage:
 """
 
 import argparse
+import importlib
 import re
+import site
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+INSTALL_HELP = """Could not install pypdf automatically. Install it one of these ways:
+  python3 -m pip install --user --break-system-packages pypdf
+  pipx install pypdf
+  python3 -m venv ~/.venvs/skills && ~/.venvs/skills/bin/pip install pypdf"""
 
 DOC_RE = re.compile(r"docs\.google\.com/document/d/([A-Za-z0-9_-]+)")
 DRIVE_RE = re.compile(r"drive\.google\.com/.*?[?&/](?:id=|d/)([A-Za-z0-9_-]+)")
@@ -42,18 +49,69 @@ def curl(url: str, dest: Path | None = None) -> bytes:
 
 
 def parse_pages(spec: str, total: int) -> list[int]:
-    if "-" in spec:
-        lo, hi = spec.split("-", 1)
-        return list(range(int(lo) - 1, min(int(hi), total)))
-    return [int(spec) - 1]
+    """Turn '2-5' / '1,4' into 0-based page indices, clamped to the document.
+
+    Clamping matters: an unclamped '0-5' produces index -1, which Python reads as the
+    *last* page, silently leading the output with the wrong content.
+    """
+    pages: set[int] = set()
+    for part in [p.strip() for p in spec.split(",") if p.strip()]:
+        try:
+            if "-" in part:
+                start, _, end = part.partition("-")
+                lo, hi = int(start), int(end)
+                if lo > hi:
+                    sys.exit(f"--pages range '{part}' runs backwards")
+                pages.update(range(lo, hi + 1))
+            else:
+                pages.add(int(part))
+        except ValueError:
+            sys.exit(f"--pages value '{part}' is not a page number or N-M range")
+
+    selected = sorted(p - 1 for p in pages if 1 <= p <= total)
+    if not selected:
+        sys.exit(f"--pages '{spec}' selects nothing in a {total}-page document "
+                 f"(valid pages are 1-{total})")
+    return selected
+
+
+def load_pypdf():
+    """Import pypdf, installing it if absent. Mirrors hub-from-outline's extractor."""
+    try:
+        import pypdf
+
+        return pypdf
+    except ImportError:
+        pass
+
+    print("pypdf not found; installing...", file=sys.stderr)
+    base = [sys.executable, "-m", "pip", "install", "--quiet", "pypdf"]
+    if sys.prefix != sys.base_prefix:
+        attempts = [base]  # inside a venv, --user is rejected outright
+    else:
+        # PEP 668 environments refuse the plain --user form and name
+        # --break-system-packages as the escape.
+        attempts = [base + ["--user"], base + ["--user", "--break-system-packages"]]
+
+    for cmd in attempts:
+        if subprocess.run(cmd, capture_output=True).returncode != 0:
+            continue
+        user_site = site.getusersitepackages()
+        if isinstance(user_site, str) and user_site not in sys.path:
+            sys.path.append(user_site)
+        importlib.invalidate_caches()
+        try:
+            import pypdf
+
+            return pypdf
+        except ImportError:
+            break
+
+    sys.exit(INSTALL_HELP)
 
 
 def pdf_text(path: Path, pages: str | None, outline: bool) -> str:
-    try:
-        import pypdf
-    except ImportError:
-        sys.exit("pypdf not installed. Run: pip3 install --user pypdf\n"
-                 "(macOS has no pdftotext by default; pypdf is the portable fallback.)")
+    pypdf = load_pypdf()
     reader = pypdf.PdfReader(str(path))
     idxs = parse_pages(pages, len(reader.pages)) if pages else range(len(reader.pages))
     out = []

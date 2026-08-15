@@ -1,12 +1,16 @@
 ---
 name: syllabus-to-knowledge-tree
-description: Turn an official course site (module PDFs, Google Docs, syllabi) into a student-facing knowledge-tree note in an Obsidian vault — pulls the authoritative source, mines the overview pages, merges lessons with their practice drills into one nested tree, adds a Mermaid concept map, and flags topics the summary promises but no lesson day covers. Use when preparing a course for review or self-study.
+description: Turns an official course site (module PDFs, Google Docs, syllabi) into a student-facing knowledge-tree note in an Obsidian vault — pulls the authoritative source, mines the overview pages, merges lessons with their practice drills into one nested tree, adds a Mermaid concept map, and flags topics the summary promises but no lesson day covers. Use when preparing a course for review or self-study, and the deliverable is a finished note to revise from. For an empty folder structure to track a course in over time — hub, module stubs, dated period notes — use hub-from-outline instead.
 user-invocable: true
 ---
 
 # Syllabus to Knowledge Tree
 
 Converts a course's official materials into one note a student can actually revise from. Course sites publish teacher-facing artifacts — standards codes, lesson inventories, worked-problem packets — which are exhaustive but unreadable. This skill extracts the durable structure, reorganizes it as a **knowledge tree** (concepts nested by dependency, not lessons listed by date), and surfaces the gap between what the course *claims* to teach and what it *schedules* a day for.
+
+> Related but different: `/hub-from-outline` scaffolds an **empty structure to fill in over time** (hub, module stubs, dated period notes). This skill writes a **finished revision note** per module. Do not substitute one for the other.
+>
+> **They compose.** Run `/hub-from-outline` once at the start of a course to scaffold `Modules/M01 …` stubs, then run this skill per module to fill a stub with the real knowledge tree. When the destination folder already has a hub and module stubs, write into the matching stub instead of creating a parallel note.
 
 ## When to Use
 
@@ -32,13 +36,17 @@ Converts a course's official materials into one note a student can actually revi
 
 ### Step 0: Prerequisites
 
+`pdftotext` is **not** installed on stock macOS — do not plan around it. The bundled
+script uses `pypdf` and installs it on demand, including on PEP 668 environments
+(Homebrew and most distro pythons) where a plain `pip install --user` is refused.
+
+`SKILL_DIR` must be assigned in the **same Bash call** that uses it — shell state does
+not persist between calls:
+
 ```bash
-python3 -c "import pypdf" 2>/dev/null || pip3 install --user pypdf
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/syllabus-to-knowledge-tree/SKILL.md)")"
+python3 "$SKILL_DIR/scripts/fetch_course_doc.py" --help
 ```
-
-`pdftotext` is **not** installed on stock macOS — do not plan around it. The bundled script uses `pypdf`.
-
-Set `SKILL_DIR` to this skill's directory (the invocation message states it).
 
 ### Step 1: Read What the Vault Already Knows
 
@@ -50,21 +58,27 @@ ls "<course-folder>"        # e.g. Family/<Student>/Academy/<Subject> Knowledge 
 
 Read it. Note which facts are marked as inferred or guessed — those are what the authoritative source will confirm or correct. Do not duplicate content that already lives in the parent note.
 
-### Step 2: Harvest the Hub Page
+### Step 2: Harvest the Course Site Index
+
+("Hub" in this skill's sibling `/hub-from-outline` means a *vault note*. Here the page
+being harvested is the **course site index** — the public page listing per-module
+links. Keep the two straight when both skills are in play.)
 
 WebFetch the course site and ask for **every link with its module number**, not a summary:
 
 > "List every link on this page under each per-module section, with the module number and full URL. Also give any module titles shown."
 
-Course hubs typically expose three link families per module: **student edition PDF**, **homework PDF (+ answer key)**, and a **videos/practice Doc**. Capture all three — they populate the resource table later.
+Course site indexes typically expose three link families per module: **student edition PDF**, **homework PDF (+ answer key)**, and a **videos/practice Doc**. Capture all three — they populate the resource table later.
 
-If the hub shows only module *numbers* with no titles, that is expected. Titles come from Step 3.
+If the index shows only module *numbers* with no titles, that is expected. Titles come from Step 3.
 
 ### Step 3: Pull the Authoritative Source
 
 WebFetch **cannot** read Google Docs (`/preview` returns an empty shell) and cannot read PDFs. Use the script:
 
 ```bash
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/syllabus-to-knowledge-tree/SKILL.md)")"
+
 # Google Doc (course overview / practice list) -> plain text
 python3 "$SKILL_DIR/scripts/fetch_course_doc.py" "<google-doc-url>"
 
@@ -199,7 +213,7 @@ If the vault has a journal convention, log the work (see `/log-to-journal`). Rep
 
 ## Requirements
 
-- `python3` with `pypdf` (auto-install command in Step 0)
+- `python3` with `pypdf` (the bundled script installs it on demand)
 - `curl`
 - WebFetch access to the course site
 - An Obsidian vault (or any Markdown notes folder)
