@@ -4,7 +4,7 @@ Turns a course's official materials — module PDFs, Google Docs, a syllabus pag
 
 ## What It Does
 
-- Harvests every per-module link from a course hub page (student editions, homework, practice docs)
+- Harvests every per-module link from the course site index (student editions, homework, practice docs)
 - Pulls the real source text — works around WebFetch's blind spots with Google Docs and PDFs
 - Reads only the **overview pages** of a module packet (~4 of 40) — the rest is worked problems
 - Confirms the module's **actual title**, replacing whatever the index note guessed
@@ -44,7 +44,7 @@ flowchart TD
 git clone https://github.com/biomystery/claude-skills.git
 mkdir -p ~/.claude/skills
 cp -r claude-skills/syllabus-to-knowledge-tree ~/.claude/skills/
-pip3 install --user pypdf
+pip3 install --user pypdf   # the script installs it on demand too
 ```
 
 ## Usage
@@ -94,7 +94,7 @@ A module note structured as:
 
 ## Requirements
 
-- `python3` with `pypdf` — `pip3 install --user pypdf`
+- `python3` with `pypdf` — the script installs it on demand, with a `--break-system-packages` fallback for PEP 668 environments
 - `curl`
 - WebFetch access to the course site
 - An Obsidian vault, or any folder of Markdown notes
