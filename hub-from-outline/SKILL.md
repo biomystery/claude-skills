@@ -11,9 +11,14 @@ folder to fill in over time. The hub holds logistics and indexes; each module is
 or working note; period notes are dated fill-ins when the outline is calendar-based.
 Optionally adds a **Mermaid outline-index graph** so the hierarchy is scannable.
 
-> Related but different: `/syllabus-to-knowledge-tree` builds a **revision tree**
-> (concepts by dependency, gap detection). This skill builds an **operational tracking
-> hub** (progress logs, period notes, templates). Do not substitute one for the other.
+> Related but different: `/syllabus-to-knowledge-tree` writes a **finished revision
+> note** per module (concepts by dependency, gap detection). This skill builds the
+> **empty structure to fill in over time** (indexes, period notes, templates). Do not
+> substitute one for the other.
+>
+> **They compose.** Scaffold once with this skill, then run
+> `/syllabus-to-knowledge-tree` per module to fill a `Modules/Mxx …` stub with the real
+> tree. Leaving the stubs for later is fine — that is what they are for.
 
 ## Vocabulary
 
