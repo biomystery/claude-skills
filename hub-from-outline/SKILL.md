@@ -1,44 +1,67 @@
 ---
 name: hub-from-outline
-description: Ingest a course, book, or syllabus outline (PDF or pasted text) into an Obsidian hub → module pages → optional Weeks/ fill-in structure, with an optional Mermaid outline-index graph on the hub. Use when scaffolding a trackable course/activity folder from an outline rather than building a revision knowledge tree.
+description: Scaffolds any structured outline — course syllabus, book table of contents, training curriculum, program calendar — into an Obsidian hub → module pages → optional dated period notes, with an optional Mermaid outline-index graph on the hub. Use when turning an outline (PDF, URL, or pasted text) into a durable folder to fill in over time, rather than building a revision knowledge tree.
 user-invocable: true
 ---
 
 # Hub from Outline
 
-Turns a **course / book / syllabus outline** into an Obsidian **hub → modules → (optional) weeks** folder you can fill in over time. The hub holds roster, logistics, and indexes; each module is a stub or working note; weeks are calendar fill-ins when the outline is date-based. Optionally adds a **Mermaid outline-index graph** on the hub so the hierarchy is scannable.
+Turns any **structured outline** into an Obsidian **hub → modules → (optional) periods**
+folder to fill in over time. The hub holds logistics and indexes; each module is a stub
+or working note; period notes are dated fill-ins when the outline is calendar-based.
+Optionally adds a **Mermaid outline-index graph** so the hierarchy is scannable.
 
-> Related but different: `/syllabus-to-knowledge-tree` builds a **student revision tree** (concepts by dependency, gap detection). This skill builds an **operational tracking hub** (progress logs, week notes, templates). Do not substitute one for the other.
+> Related but different: `/syllabus-to-knowledge-tree` builds a **revision tree**
+> (concepts by dependency, gap detection). This skill builds an **operational tracking
+> hub** (progress logs, period notes, templates). Do not substitute one for the other.
+
+## Vocabulary
+
+Use these five canonical terms throughout — in headings, filenames, and the report.
+Domain synonyms belong in prose only; see [reference/domain-profiles.md](reference/domain-profiles.md)
+for the full mapping per domain.
+
+| Canonical | Is | Typical synonyms |
+|---|---|---|
+| **Hub** | the durable container note | academy, program, book, discipline |
+| **Track** | one instance being followed | class section, cohort, reading run, level |
+| **Module** | a numbered unit of the outline | unit, chapter, part, level, workstream |
+| **Item** | a leaf inside a module | lesson, section, drill, session |
+| **Period** | one dated time slice | week, class day, training block, sprint |
 
 ## When to Use
 
-- You have a syllabus PDF, book table of contents, welcome-letter calendar, or pasted outline
-- You want a durable vault folder: hub + module pages + fill-in templates
-- You may want a Mermaid map of units → lessons on the hub
-- Examples: Chinese-school year, math academy course, book club, gym level curriculum
+- There is a syllabus PDF, book table of contents, welcome-letter calendar, curriculum
+  ladder, or pasted outline
+- The goal is a durable vault folder: hub + module pages + fill-in templates
+- A Mermaid map of modules → items on the hub would help
+- Examples: a school year, a book club run, a gym level curriculum, a program calendar
 
-**Do not use** for: one-off revision notes from lesson packets (use `/syllabus-to-knowledge-tree`), or solo errands (Microsoft To Do).
+**Do not use** for: one-off revision notes from lesson packets (use
+`/syllabus-to-knowledge-tree`), goal-driven work needing next actions (use
+`/project-mgr`), or solo errands (Microsoft To Do).
 
 ## Core Rules (non-negotiable)
 
 | Rule | Why |
 |---|---|
-| **Hub is kid-/cohort-agnostic where possible**; child-specific facts live on the class page | Same pattern as academy/gym hubs |
-| **Prefer dates over week numbers** in indexes when both exist | Official “W1–W31” often disagrees with instructional-day counts |
-| **Default: create module stub files** from outline units; `--index-only` skips stubs | Ingest should materialize structure you can open tomorrow |
-| **Do not pre-create every week file** — index + `_Template` + optional W01 stub | Avoids 30 empty notes; click unresolved links to create later |
-| **Mermaid is opt-in** (`--mermaid` / user asks) | Not every hub needs a graph; keep default lean |
-| **Never invent unit titles** — mark guesses in *italics* until confirmed | Outline PDFs lie; covers and emails are authoritative |
-| **No PII/secrets** in hubs (passwords, full account numbers, medical IDs) | Link to enrollment notes instead |
-| Leave study/homework checkboxes **untagged** unless they are real agent `#task`s | Bare `- [ ]` ≠ tracked todo |
+| **Hub stays instance-agnostic**; person- and run-specific facts live on the Track page | One hub survives many cohorts and years |
+| **Prefer dates over sequence numbers** in indexes when both exist | Published "W1–W31" numbering routinely disagrees with actual session counts |
+| **Default: create Module stub files** from outline units; `--index-only` skips them | Ingest should materialize structure that can be opened tomorrow |
+| **Do not pre-create every Period file** — index + `_Template` + first stub only | Avoids 30 empty notes; click unresolved links to create later |
+| **Mermaid is opt-in** (`--mermaid` / user asks) | Not every hub needs a graph; keep the default lean |
+| **Never invent Module titles** — mark inferred titles in *italics* until confirmed | Outline PDFs lie; covers and emails are authoritative |
+| **No PII/secrets** in these notes (passwords, full account numbers, medical IDs) | Link to the enrollment/entity note instead |
+| Leave checkboxes **untagged** unless they are real agent `#task`s | Bare `- [ ]` ≠ tracked todo |
 | Re-read vault files immediately before edit | iCloud/linter races |
-| Log via **log-to-journal** when the vault uses that habit | Don’t reimplement journal insert |
+| Delegate journal writes to `/log-to-journal` when the vault uses that habit | Don't reimplement journal insert |
 
 ## Instructions
 
 ### Step 0: Resolve paths and flags
 
 ```bash
+SKILL_DIR="${SKILL_DIR:-$HOME/.claude/skills/hub-from-outline}"
 VAULT="${VAULT_DIR:-$PWD}"
 NOW=$(date "+%Y-%m-%dT%H:%M")
 ```
@@ -49,205 +72,218 @@ From the user message, capture:
 |---|---|---|
 | Outline source | PDF path, URL, or pasted text | required |
 | Destination folder | e.g. `Family/<Person>/<Activity>/` | ask if missing |
-| Hub filename | e.g. `Academy.md` / `SDHXCS.md` | derive from org/course name |
-| Class/course filename | e.g. `CH4-1.md` / `Honors Math 4.md` | derive from course code/title |
+| Hub filename | e.g. `Academy.md` | derive from the org/container name |
+| Track filename | e.g. `CH4-1.md` / `Honors Math 4.md` | derive from the instance code/title |
 | `--index-only` | Module index rows only, no stub files | off |
-| `--mermaid` | Add outline-index Mermaid on hub (+ optional on class page) | off unless asked |
-| `--weeks` | Build week index from dated outline / calendar | on if dates present |
+| `--mermaid` | Add outline-index Mermaid on hub (+ optionally the Track page) | off unless asked |
+| `--periods` (alias `--weeks`) | Build a Period index from the dated outline | on if dates present |
+| `--period-label <Week\|Day\|Block\|Sprint>` | Names the folder and file prefix | `Week` → `Weeks/`, `Wxx` |
 | Parent profile | Optional `[[Person]]` hub to update | ask if obvious |
+
+### Step 0.5: Syntax layer (optional delegation)
+
+Every file written here is Obsidian Flavored Markdown. Check once:
+
+```bash
+ls "$HOME/.claude/skills/obsidian-markdown" >/dev/null 2>&1 && echo available
+```
+
+- **Available** → use `/obsidian-markdown` for any syntax decision beyond the crib
+  below (property types, callout types, embed and block-reference forms). Do not
+  restate its rules; invoke it.
+- **Not available** → stay inside this crib, which covers everything this skill emits:
+
+```markdown
+---
+created: 2026-01-01T09:00     # frontmatter properties
+tags: [course, hub]
+---
+[[Note]] · [[Note|Alias]] · [[Modules/M01 Title|open]]   # wikilinks
+![[Note#Heading]]                                        # embed a section
+> [!info] Title                                          # callout (info/abstract/note)
+```
+
+Unresolved wikilinks are intentional here — clicking one creates the Period note later.
 
 ### Step 1: Ingest the outline
 
-#### Strategy A — Local PDF with text layer
+#### Strategy A — Local PDF with a text layer
 
 ```bash
-python3 - <<'PY'
-import sys
-from pathlib import Path
-path = Path(sys.argv[1])
-try:
-    from pypdf import PdfReader
-except ImportError:
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "pypdf"])
-    from pypdf import PdfReader
-reader = PdfReader(str(path))
-for i, page in enumerate(reader.pages, 1):
-    text = page.extract_text() or ""
-    print(f"\n--- page {i} ---\n{text}")
-PY
-"<path-to-outline.pdf>"
+python3 "$SKILL_DIR/scripts/extract_outline_text.py" "<path-to-outline.pdf>"
 ```
 
-If text is empty/garbled → Strategy B.
+Add `--pages 1-4` to limit long documents. Exit code 2 means there is no usable text
+layer → Strategy B.
 
 #### Strategy B — Image-only / scanned PDF
 
-Render pages (macOS `qlmanage -t`, or ask user for export) and **Read** the images, or ask the user to paste the outline. Do not invent structure from a blank extract.
+Render pages (macOS `qlmanage -t`, or ask the user to export images) and **Read** the
+images, or ask the user to paste the outline. Do not invent structure from a blank
+extract.
 
 #### Strategy C — Pasted outline / welcome email / journal
 
-Use the provided text as source of truth. Prefer the latest dated welcome letter over older schedules.
+Use the provided text as the source of truth. Prefer the latest dated welcome letter
+over older schedules.
 
-Parse into a hierarchy:
+Parse into this hierarchy:
 
 ```
-Course / Book
-└── Module | Unit | Chapter   ← becomes Modules/Mxx ….md
-    └── Lesson | Section      ← listed inside the module note
-Week / Date (if present)      ← becomes Weeks index rows
-Closures / holidays           ← index-only 🚫 rows, no week files
+Hub (course / book / program)
+└── Module            ← becomes Modules/Mxx ….md
+    └── Item          ← listed inside the module note
+Period (if dated)     ← becomes Period index rows
+Closures / holidays   ← index-only 🚫 rows, no file
 ```
 
 ### Step 2: Create the folder skeleton
 
 ```text
 <Destination>/
-├── <Hub>.md                 # org/course hub
-├── <Class>.md               # this offering / section
+├── <Hub>.md
+├── <Track>.md
 ├── Modules/
 │   ├── _Template.md
-│   └── M01 ….md             # unless --index-only
-└── Weeks/                   # only if --weeks / dates exist
+│   └── M01 ….md              # unless --index-only
+└── Weeks/                    # <period-label>s/ — only if dates exist
     ├── _Template.md
-    └── W01 YYYY-MM-DD.md    # stub first instructional date only
+    └── W01 YYYY-MM-DD.md     # first dated session only
 ```
 
-Match existing peer folders in the destination area when the vault already uses a hub/class split (e.g. `…/<OrgOrCourse>/`).
+Match existing peer folders when the vault already uses a hub/track split. If only one
+instance will ever exist, fold the Track into the Hub (see domain-profiles.md) and say
+so in the report.
 
-### Step 3: Write the hub note
+### Step 3: Write the Hub note
 
-Frontmatter: `created`, `updated`, `tags`, `aliases`.
+Skeleton: [reference/templates.md](reference/templates.md) → *Hub note*.
 
-Required sections:
+Required sections, in order: purpose callout (instance-agnostic) · Tracks · contact and
+location (if known) · Module index · how the folder is organized · optional Mermaid
+(Step 6) · Related.
 
-1. **What this note is** (`> [!info]`) — kid-agnostic purpose
-2. **Roster / Students** — links to class pages
-3. **Contact & location** (if known)
-4. **Module index** — table linking to `Modules/…`
-5. **How this folder is organized** — short tree + fill-in workflow
-6. **Optional Mermaid** — only if `--mermaid` (see Step 6)
-7. **Related** — parent profile, sibling activities
+### Step 4: Write the Track note
 
-### Step 4: Write the class / course page
+Skeleton: [reference/templates.md](reference/templates.md) → *Track note*.
 
-Required sections:
+Required sections, in order: snapshot callout · participant block · Module index ·
+Period index (if dated) · materials and logistics · Related.
 
-1. Snapshot callout (schedule, instructor, materials)
-2. **Student/section block** (enrollment status, open todos)
-3. **Module index** (same rows as hub, or finer)
-4. **Week log index** if dated — Status column: `⬜` / `📝` / `✅` / `🚫`
-5. Materials, teacher, logistics
-6. Related links
-
-Week index rules:
+Period index rules:
 
 - One row per calendar session date
 - Closures: `🚫` + reason, **no file**
-- Instructional rows: wikilink `[[…/Weeks/Wxx YYYY-MM-DD|Wxx]]` even if file not created yet (except create **W01** stub)
-- Prefer `YYYY-MM-DD` in filenames
+- Live rows link `[[<Periods>/<Pxx YYYY-MM-DD>|Pxx]]` even when the file does not exist
+  yet — except the first, which is created as a stub
+- Always `YYYY-MM-DD` in filenames
 
 ### Step 5: Templates and stubs
 
-**Modules/_Template.md** — scope, goals, vocab table, assignments-by-week, reflection.
+Write `Modules/_Template.md` and, when dated, `<Periods>/_Template.md` from
+[reference/templates.md](reference/templates.md).
 
-**Weeks/_Template.md** — attendance, module link, class focus, homework table, teacher email, home practice, next-week link.
+Default stubs:
 
-**Default stubs:**
+- One Module stub per outline unit (`M01 …`, `M02 …`) unless `--index-only`
+- Only the **first** Period stub; leave later periods as unresolved links
 
-- Create one module stub per outline unit (`M01 …`, `M02 …`) unless `--index-only`
-- Create **only W01** week stub (first instructional date); leave later weeks as unresolved links
-
-When filling later: duplicate the matching `_Template`, rename, flip Status on the class index.
+Filling in later: duplicate the matching `_Template`, rename, flip Status on the Track
+index. Status glyphs are fixed — `⬜` `📝` `✅` `🚫`, defined in templates.md.
 
 ### Step 6: Optional Mermaid outline-index graph
 
-If the user passed `--mermaid` or asked for a graph, add a `## Map` (or `## Outline index`) section on the **hub** (and optionally the class page).
+Only when `--mermaid` was passed or the user asked. Add a `## Map` section to the Hub
+(and optionally the Track page).
 
 Rules:
 
 - `flowchart TD` (or `LR` for shallow outlines)
-- Nodes = modules; optional child nodes = lessons
-- Keep **8–20 nodes** — collapse lessons under modules if larger
-- Use stable node IDs (`M1`, `M2`, `L1a`) — labels can be human titles
-- Optional: `class M1,M2 internal-link;` only when node labels match real note names Obsidian can resolve
-- Do **not** put PII in node labels
-- If hierarchy is uncertain, add `> [!note] Structure inferred — confirm against outline` above the diagram
-
-Example shape (fictional):
+- Nodes = Modules; optional child nodes = Items
+- Keep **8–20 nodes** — collapse Items under Modules when larger
+- Stable node IDs (`M1`, `M2`, `L1a`); labels carry the human titles
+- `class M1,M2 internal-link;` only when node labels match note names Obsidian resolves
+- No PII in node labels
+- If the hierarchy is uncertain, put `> [!note] Structure inferred — confirm against
+  outline` above the diagram
 
 ````markdown
 ## Map
 
 ```mermaid
 flowchart TD
-  H[Course hub] --> M1[M01 Unit One]
+  H[Hub] --> M1[M01 Unit One]
   H --> M2[M02 Unit Two]
-  M1 --> L1a[Lesson A]
-  M1 --> L1b[Lesson B]
-  M2 --> L2a[Lesson A]
+  M1 --> L1a[Item A]
+  M1 --> L1b[Item B]
+  M2 --> L2a[Item A]
 ```
 ````
 
-Skip Mermaid entirely when not requested.
-
 ### Step 7: Wire the parent profile (if any)
 
-Update the person’s hub **Enrichment / activities** with a short bullet + wikilinks to class + hub (+ W01 if created). Do not dump the full outline onto the profile.
+Add a short bullet plus wikilinks to the Track and Hub (and the first Period, if
+created) under the person's activities section. Do not dump the outline onto the profile.
 
-### Step 8: Journal (when vault convention applies)
+### Step 8: Journal (when the vault convention applies)
 
-Use `/log-to-journal` (or `log-to-journal/scripts/journal_insert.py`): time-first headline, details nested, link the new hub/class.
+Use `/log-to-journal` (or `log-to-journal/scripts/journal_insert.py`): time-first
+headline, details nested, linking the new Hub and Track.
 
 ### Step 9: Report
 
-Return:
-
-- Folder path
-- Files created
-- Whether Mermaid / weeks / module stubs were included
-- First fill-in action (usually W01 or M01)
+Return: folder path · files created · whether Mermaid / periods / Module stubs were
+included · whether the Track was folded into the Hub · the first fill-in action
+(usually the first Period or Module).
 
 ## Example Invocations
 
 ```
-/hub-from-outline ~/Documents/outlines/chinese-ch4-calendar.pdf --dest Family/Alex/Chinese_School --mermaid --weeks
+/hub-from-outline ~/Documents/outlines/chinese-ch4-calendar.pdf --dest Family/Alex/Chinese_School --mermaid --periods
 ```
+→ School profile: hub + class Track, Module stubs, dated `Weeks/` index, W01 stub, hub map
 
 ```
-/hub-from-outline --pasted-outline --dest Family/Alex/Math_Book --index-only
+/hub-from-outline --pasted-outline --dest Reading/Sapiens --index-only
 ```
-→ Hub + class + module index rows only; no stub files; no Mermaid
+→ Book profile: hub + reading-run Track, Module index rows only, no stubs, no periods
 
 ```
-/hub-from-outline syllabus.pdf Family/Alex/Academy_Course --mermaid
+/hub-from-outline curriculum.pdf --dest Family/Alex/Judo --period-label Block --mermaid
 ```
-→ Module stubs from units; Mermaid map; weeks only if dates appear in the PDF
+→ Training profile: Modules are levels, `Blocks/` instead of `Weeks/`, hub map
 
 ## Output
 
 ```
 <Dest>/
 ├── <Hub>.md              # indexes + optional Mermaid map
-├── <Class>.md            # student section + week/module indexes
+├── <Track>.md            # participant block + Module/Period indexes
 ├── Modules/_Template.md
 ├── Modules/M01 ….md      # default on
-├── Weeks/_Template.md    # if dated
+├── Weeks/_Template.md    # <period-label>s/ — if dated
 └── Weeks/W01 ….md        # first session stub only
 ```
 
-Plus optional parent-profile + journal links.
+Plus optional parent-profile and journal links.
 
 ## Requirements
 
 - Obsidian vault (wikilinks, callouts, optional Mermaid)
-- `python3` + `pypdf` for PDF text extract (`pip install --user pypdf` if missing)
-- `/log-to-journal` when logging to a Journals-style vault
+- `python3`; `pypdf` for PDF text extraction — the extract script installs it with
+  `pip install --user pypdf` when missing
+- Optional: `/obsidian-markdown` for syntax beyond the Step 0.5 crib
+- Optional: `/log-to-journal` when logging into a Journals-style vault
 
 ## Skill Structure
 
 ```
 hub-from-outline/
 ├── SKILL.md
-└── README.md
+├── README.md
+├── reference/
+│   ├── domain-profiles.md          # canonical vocabulary per domain
+│   └── templates.md                # hub/track/module/period skeletons
+└── scripts/
+    └── extract_outline_text.py     # PDF text-layer extract with page report
 ```
