@@ -19,6 +19,7 @@ dashboard are views, not copies.
 - Guides the **tag scheme** design: what belongs in a scheduling tag and — more importantly
   — what must stay out of it (level/grade, person)
 - Fences template example tasks so a `_Template.md` never pollutes live queries
+- Renames a tag scheme across the folder when the first one proves too specific — previews by default, `--write` to apply
 - Documents the resulting convention on the durable hub note
 
 ## Workflow
@@ -64,6 +65,10 @@ python3 ~/.claude/skills/catalog-to-tracker/scripts/table_to_tasks.py \
 
 python3 ~/.claude/skills/catalog-to-tracker/scripts/verify_merge.py \
   --backup /tmp/piano-backup --current "Study/Piano/Modules"
+
+# rename a tag scheme once it proves too specific (previews unless --write)
+python3 ~/.claude/skills/catalog-to-tracker/scripts/rename_tag.py \
+  --path "Study/Piano" --old "plan-wk" --new "piano26-wk"
 ```
 
 ## Output
@@ -149,5 +154,6 @@ catalog-to-tracker/
 ├── README.md
 └── scripts/
     ├── table_to_tasks.py
-    └── verify_merge.py
+    ├── verify_merge.py
+    └── rename_tag.py
 ```

@@ -258,7 +258,7 @@ created) under the person's activities section. Do not dump the outline onto the
 
 ### Step 8: Journal (when the vault convention applies)
 
-Use `/log-to-journal` (or `log-to-journal/scripts/journal_insert.py`): time-first
+Use `/log-to-journal`: time-first
 headline, details nested, linking the new Hub and Track.
 
 ### Step 9: Report

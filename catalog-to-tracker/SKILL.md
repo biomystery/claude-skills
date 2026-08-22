@@ -1,6 +1,6 @@
 ---
 name: catalog-to-tracker
-description: Turn a reference catalog living in Obsidian tables (course skills, curriculum items, reading list, drill library) into a single-source-of-truth checkbox tracker, and wire selected items into a query-driven schedule page via a tag scheme. Use when the same item exists twice — once as a catalog row, once as a hand-copied scheduled checkbox — or when a catalog needs to become checkable and plannable.
+description: Turns a reference catalog living in Obsidian tables (course skills, curriculum items, reading list, drill library) into a single-source-of-truth checkbox tracker, and wires selected items into a query-driven schedule page via a tag scheme. Use when the same item exists twice — once as a catalog row, once as a hand-copied scheduled checkbox — or when a catalog needs to become checkable and plannable.
 user-invocable: true
 ---
 
@@ -156,24 +156,18 @@ schedule page queries, so its shape decides what stays queryable a year from now
 Ask before committing to a scheme: *"When this item gets swapped for an easier or harder
 variant, does the tag still hold?"* If no, the tag is over-specified.
 
-Rename an existing scheme in one pass, then confirm nothing survives:
+Expect to rename at least once — the first scheme is usually over-specified.
+`scripts/rename_tag.py` previews by default and only writes with `--write`:
 
 ```bash
-python3 - <<'PY'
-import pathlib, re, datetime
-OLD, NEW = r"oldtag-wk", "newtag-wk"
-stamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")
-for p in pathlib.Path("<Folder/Path/To/Topic>").rglob("*.md"):
-    t = p.read_text(encoding="utf-8")
-    if not re.search(OLD, t):
-        continue
-    t = re.sub(OLD, NEW, t)
-    t = re.sub(r"^updated: .*$", f"updated: {stamp}", t, count=1, flags=re.M)
-    p.write_text(t, encoding="utf-8")
-    print(p)
-PY
-grep -rn "oldtag" "<Folder/Path/To/Topic>" --include="*.md"   # must return nothing
+python3 "$SKILL_DIR/scripts/rename_tag.py" \
+  --path "$VAULT/$TOPIC" --old "oldtag-wk" --new "newtag-wk"            # preview
+python3 "$SKILL_DIR/scripts/rename_tag.py" \
+  --path "$VAULT/$TOPIC" --old "oldtag-wk" --new "newtag-wk" --write
 ```
+
+It reports per-file hit counts, bumps `updated:` on changed files, and prints the
+`grep` that must come back empty. Run that grep before moving on.
 
 > Vault-wide `grep -r` over an iCloud-synced vault can take minutes and stall the turn.
 > Scope it to the topic folder plus the journal year, not the vault root.
@@ -290,5 +284,6 @@ catalog-to-tracker/
 ├── README.md
 └── scripts/
     ├── table_to_tasks.py   # catalog table -> grouped checkboxes, merge duplicate section
-    └── verify_merge.py     # post-conversion audit against the backup
+    ├── verify_merge.py     # post-conversion audit against the backup
+    └── rename_tag.py       # preview/apply a tag-scheme rename across the folder
 ```
