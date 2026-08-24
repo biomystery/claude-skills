@@ -13,8 +13,14 @@ The heading is matched as an exact stripped-line match (include the leading
 own depth is replaced with --body, framed by a single blank line on each
 side.
 
+If the heading is missing and --insert-before is given, a new section is
+inserted immediately before that heading (used when older weekly notes lack
+People / Goals sections).
+
 Usage:
     replace_section.py --file PATH --heading "## Wins" --body STR
+    replace_section.py --file PATH --heading "## People" --body STR \\
+        --insert-before "## Wins"
 """
 import argparse
 import sys
@@ -25,38 +31,66 @@ def heading_depth(line: str) -> int:
     return len(line) - len(stripped)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--file", required=True)
-    ap.add_argument("--heading", required=True, help="Exact heading line, e.g. '## Wins'")
-    ap.add_argument("--body", required=True, help="Replacement body text (may contain \\n)")
-    args = ap.parse_args()
+def find_heading(lines, target: str):
+    return next((i for i, ln in enumerate(lines) if ln.strip() == target), None)
 
-    with open(args.file, "r", encoding="utf-8") as f:
-        lines = f.read().split("\n")
 
-    target = args.heading.strip()
-    depth = heading_depth(target)
-
-    start = next((i for i, ln in enumerate(lines) if ln.strip() == target), None)
-    if start is None:
-        print(f"heading not found: {target!r}", file=sys.stderr)
-        return 1
-
+def replace_body(lines, start: int, body_lines):
+    depth = heading_depth(lines[start].lstrip())
     end = len(lines)
     for i in range(start + 1, len(lines)):
         ln = lines[i]
         if ln.lstrip().startswith("#") and heading_depth(ln.lstrip()) <= depth:
             end = i
             break
+    return lines[: start + 1] + [""] + body_lines + [""] + lines[end:], end
 
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--file", required=True)
+    ap.add_argument("--heading", required=True, help="Exact heading line, e.g. '## Wins'")
+    ap.add_argument("--body", required=True, help="Replacement body text (may contain \\n)")
+    ap.add_argument(
+        "--insert-before",
+        default=None,
+        help="If --heading is missing, insert a new section before this heading",
+    )
+    args = ap.parse_args()
+
+    with open(args.file, "r", encoding="utf-8") as f:
+        lines = f.read().split("\n")
+
+    target = args.heading.strip()
     body_lines = args.body.split("\n")
-    new_lines = lines[: start + 1] + [""] + body_lines + [""] + lines[end:]
+    start = find_heading(lines, target)
+
+    if start is None:
+        if not args.insert_before:
+            print(f"heading not found: {target!r}", file=sys.stderr)
+            return 1
+        before_target = args.insert_before.strip()
+        before = find_heading(lines, before_target)
+        if before is None:
+            print(
+                f"heading not found: {target!r}; insert-before also missing: {before_target!r}",
+                file=sys.stderr,
+            )
+            return 1
+        new_block = [target, ""] + body_lines + [""]
+        new_lines = lines[:before] + new_block + lines[before:]
+        action = f"inserted section {target!r} before {before_target!r}"
+    else:
+        new_lines, end = replace_body(lines, start, body_lines)
+        action = (
+            f"replaced section {target!r}: lines {start + 1}-{end - 1} "
+            f"-> {len(body_lines)} line(s)"
+        )
 
     with open(args.file, "w", encoding="utf-8") as f:
         f.write("\n".join(new_lines))
 
-    print(f"replaced section {target!r}: lines {start + 1}-{end - 1} -> {len(body_lines)} line(s)")
+    print(action)
     return 0
 
 

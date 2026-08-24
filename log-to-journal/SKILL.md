@@ -31,19 +31,24 @@ Appends one concise, timestamped entry to the user's Obsidian **daily journal**,
 
 ### Step 0: Resolve the journal file path
 
-The daily note lives at `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md` where `WXX` is the **ISO week number**. Compute all three from today's date:
+The daily note lives at `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`. **This vault's week starts Sunday.** Folder `WXX` is the ISO week of the **Monday** in that Sun–Sat range — **not** `date +%V` on Sunday (Sunday `%V` is off by one).
 
 ```bash
 VAULT="${VAULT_DIR:-$PWD}"          # repo root / vault root
 DATE=$(date "+%Y-%m-%d")
 YEAR=$(date "+%Y")
-WEEK=$(date "+%Y-W%V")              # ISO week, e.g. 2026-W24
+# Sunday (%u=7): use tomorrow's ISO week. Mon–Sat: today's %V is correct.
+if [ "$(date "+%u")" = "7" ]; then
+  WEEK=$(date -v+1d "+%Y-W%V" 2>/dev/null || date -d "tomorrow" "+%Y-W%V")
+else
+  WEEK=$(date "+%Y-W%V")
+fi
 TIME=$(date "+%H:%M")
 JOURNAL="$VAULT/Journals/$YEAR/$WEEK/$DATE.md"
 echo "$JOURNAL" && ls -la "$JOURNAL"
 ```
 
-> `%V` is the ISO-8601 week number (matches Obsidian's default). Use it, not `%U` or `%W`.
+> Example: `2026-08-16` (Sunday) → `Journals/2026/2026-W34/`. Prefer the weekly note's `journal-start-date` / `journal-end-date` if `%V` and the folder disagree.
 
 If the file does not exist, the vault's Calendar plugin normally creates it from a template. Create a minimal one only if the user confirms — otherwise stop and ask.
 

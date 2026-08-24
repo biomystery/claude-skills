@@ -34,8 +34,18 @@ VAULT="${VAULT_DIR:-$PWD}"
 DATE=$(date "+%Y-%m-%d")
 YESTERDAY=$(date -v-1d "+%Y-%m-%d" 2>/dev/null || date -d "yesterday" "+%Y-%m-%d")
 YEAR=$(date "+%Y")
-WEEK=$(date "+%Y-W%V")
-YESTERDAY_WEEK=$(date -v-1d "+%Y-W%V" 2>/dev/null || date -d "yesterday" "+%Y-W%V")
+# Week starts Sunday. Folder = ISO week of the Monday in that Sun–Sat range.
+# On Sunday, `date +%V` is off by one — use tomorrow's ISO week.
+if [ "$(date "+%u")" = "7" ]; then
+  WEEK=$(date -v+1d "+%Y-W%V" 2>/dev/null || date -d "tomorrow" "+%Y-W%V")
+else
+  WEEK=$(date "+%Y-W%V")
+fi
+if [ "$(date -v-1d "+%u" 2>/dev/null || date -d "yesterday" "+%u")" = "7" ]; then
+  YESTERDAY_WEEK=$(date -v-1d -v+1d "+%Y-W%V" 2>/dev/null || date -d "yesterday +1 day" "+%Y-W%V")
+else
+  YESTERDAY_WEEK=$(date -v-1d "+%Y-W%V" 2>/dev/null || date -d "yesterday" "+%Y-W%V")
+fi
 
 TODAY_JOURNAL="$VAULT/Journals/$YEAR/$WEEK/$DATE.md"
 YESTERDAY_JOURNAL="$VAULT/Journals/$YEAR/$YESTERDAY_WEEK/$YESTERDAY.md"
