@@ -1,24 +1,29 @@
 # catalog-to-tracker
 
 Turns a reference **catalog** living in Obsidian tables — a course skill tree, curriculum,
-drill library, reading list — into a **tracker**: one checkbox per item, grouped, in
-catalog order. If the same items were also hand-copied into a separate "scheduled" list,
-those get folded back into the catalog line they belong to, so each item has exactly one
-checkbox. A schedule page then *queries* those lines by tag instead of duplicating them.
+drill library, reading list — into a **tracker**: grouped checkboxes in catalog order. If
+the same items were also hand-copied into a separate "scheduled" list, those get folded
+back into the catalog line they belong to. A schedule page then *queries* those lines by
+tag instead of duplicating them.
 
-The invariant: **one item, one checkbox, one place.** The weekly plan and the progress
-dashboard are views, not copies.
+The invariant: **one checkbox per scheduled occurrence, in one place.** An item you never
+scheduled has one unticked line; an item scheduled in weeks 1 and 3 keeps two lines, each
+with its own tag and `✅` date, because the Tasks plugin has to be able to tell two
+practice events apart. The weekly plan and the progress dashboard are views, not copies.
 
 ## What It Does
 
 - Rewrites a `## Items` table as `### Group` headings + `- [ ] [A.1 Title](url)` checkboxes
 - Merges a duplicate scheduled-items section into the catalog **by stable ID**, preserving
   the day prefix, week tag, `✅` completion date, and any score note verbatim
-- Parks scheduled items with no catalog match under a visible bucket — never drops them
-- Verifies the result against a pre-change backup: no ID lost, none duplicated, no URL lost
+- Parks scheduled items with no catalog match under a visible bucket — never drops them,
+  and leaves a scheduled line it cannot parse where it found it rather than deleting it
+- Verifies the result against a pre-change backup: no ID lost, none *gained*, no URL and
+  no `✅` completion date lost
 - Guides the **tag scheme** design: what belongs in a scheduling tag and — more importantly
   — what must stay out of it (level/grade, person)
 - Fences template example tasks so a `_Template.md` never pollutes live queries
+- Renames a tag scheme across the folder when the first one proves too specific — previews by default, `--write` to apply
 - Documents the resulting convention on the durable hub note
 
 ## Workflow
@@ -38,7 +43,7 @@ flowchart TD
     I -->|Yes| J[Design tag scheme\nexclude level + person]
     J --> K[Schedule page:\ntag query + path guard]
     J --> L[Template: fence examples\nHub: document convention]
-    K --> M(["Done\none item, one checkbox"])
+    K --> M(["Done\none checkbox per occurrence"])
     L --> M
 ```
 
@@ -64,6 +69,10 @@ python3 ~/.claude/skills/catalog-to-tracker/scripts/table_to_tasks.py \
 
 python3 ~/.claude/skills/catalog-to-tracker/scripts/verify_merge.py \
   --backup /tmp/piano-backup --current "Study/Piano/Modules"
+
+# rename a tag scheme once it proves too specific (previews unless --write)
+python3 ~/.claude/skills/catalog-to-tracker/scripts/rename_tag.py \
+  --path "Study/Piano" --old "plan-wk" --new "piano26-wk"
 ```
 
 ## Output
@@ -82,7 +91,7 @@ python3 ~/.claude/skills/catalog-to-tracker/scripts/verify_merge.py \
 | [A.2 Natural minor scales](https://example.com/a2) | — | ⬜ |
 ```
 
-**After** — one checkbox, scheduling expressed as a tag on that same line:
+**After** — scheduling expressed as a tag on the catalog line itself:
 
 ```markdown
 ## Items
@@ -98,12 +107,12 @@ python3 ~/.claude/skills/catalog-to-tracker/scripts/verify_merge.py \
 **Sample run** (illustrative values):
 
 ```
-  M01 Scales.md: 24 items, 8/8 merged
-  M02 Arpeggios.md: 31 items, 5/5 merged
-  M03 Etudes.md: 18 items, 0/0 merged
+  M01 Scales.md: 24 items, 8/8 scheduled line(s) merged
+  M02 Arpeggios.md: 31 items, 5/5 scheduled line(s) merged
+  M03 Etudes.md: 18 items, 0/0 scheduled line(s) merged
 converted 3 file(s)
 
-  M01 Scales.md: 24 unique IDs, 8 duplicate occurrence(s) merged
+  M01 Scales.md: 24 unique IDs, 6 duplicate occurrence(s) merged, 2 scheduled repeat(s) kept
   M02 Arpeggios.md: 31 unique IDs, 5 duplicate occurrence(s) merged
   M03 Etudes.md: 18 unique IDs, 0 duplicate occurrence(s) merged
 
@@ -149,5 +158,6 @@ catalog-to-tracker/
 ├── README.md
 └── scripts/
     ├── table_to_tasks.py
-    └── verify_merge.py
+    ├── verify_merge.py
+    └── rename_tag.py
 ```

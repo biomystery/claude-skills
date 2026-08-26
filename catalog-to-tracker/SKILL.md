@@ -1,18 +1,22 @@
 ---
 name: catalog-to-tracker
-description: Turn a reference catalog living in Obsidian tables (course skills, curriculum items, reading list, drill library) into a single-source-of-truth checkbox tracker, and wire selected items into a query-driven schedule page via a tag scheme. Use when the same item exists twice — once as a catalog row, once as a hand-copied scheduled checkbox — or when a catalog needs to become checkable and plannable.
+description: Turns a reference catalog living in Obsidian tables (course skills, curriculum items, reading list, drill library) into a single-source-of-truth checkbox tracker, and wires selected items into a query-driven schedule page via a tag scheme. Use when the same item exists twice — once as a catalog row, once as a hand-copied scheduled checkbox — or when a catalog needs to become checkable and plannable.
 user-invocable: true
 ---
 
 # Catalog to Tracker
 
-Converts a **catalog** (markdown tables of items) into a **tracker** (one checkbox per
-item, grouped, in catalog order), folds any duplicated "scheduled items" section back
-into it, and designs the **tag scheme** that lets a separate schedule page assemble
-those items with Tasks-plugin queries.
+Converts a **catalog** (markdown tables of items) into a **tracker** (grouped checkboxes
+in catalog order), folds any duplicated "scheduled items" section back into it, and
+designs the **tag scheme** that lets a separate schedule page assemble those items with
+Tasks-plugin queries.
 
-The invariant this skill exists to establish: **one item, one checkbox, one place.**
-Everything else — the weekly plan, the progress dashboard — is a *query*, never a copy.
+The invariant this skill exists to establish: **one checkbox per scheduled occurrence,
+in one place.** An item never scheduled has exactly one unticked line; an item scheduled
+in weeks 1 and 3 has two lines, each with its own tag and `✅` date, because those are
+two distinct practice events and the Tasks plugin has to be able to tell them apart.
+What never happens is the *same* occurrence existing twice. Everything else — the weekly
+plan, the progress dashboard — is a *query*, never a copy.
 
 > Related but different: `/hub-from-outline` **builds** the hub → module pages from an
 > outline. This skill makes those module pages **checkable and schedulable**. They
@@ -46,7 +50,8 @@ todo capture (the vault's backlog / `#task` convention), or catalogs with no sta
 
 | Rule | Why |
 |---|---|
-| **One item, one checkbox** — schedule pages query, never copy | Two checkboxes always diverge; the ✅ date lands on the wrong one |
+| **One checkbox per occurrence** — schedule pages query, never copy | Two checkboxes for the *same* occurrence always diverge; the ✅ date lands on the wrong one |
+| **A repeat across cycles is a new occurrence, not a duplicate** | Collapsing wk1 and wk3 into one line destroys the wk1 completion date |
 | **Match items by stable ID, never by title** | Titles get reworded upstream; `S.4` does not |
 | **Back up before rewriting, verify after** | No git inside most vaults; a bad regex silently eats rows |
 | **Keep unscheduled items in the list, untagged** | The catalog is the menu; scheduling = adding a tag, not moving a line |
@@ -100,10 +105,19 @@ python3 "$SKILL_DIR/scripts/table_to_tasks.py" \
   --dry-run
 ```
 
-Output is `M01 Foo.md: 23 items, 12/12 merged`. **`merged` must read `N/N`.** Anything
-less means the ID pattern missed lines — the script parks unmatched scheduled items under
-a visible `### Scheduled — not found in catalog` bucket rather than dropping them, but
-that heading in the result means fix the pattern and re-run from the backup.
+Output is `M01 Foo.md: 23 items, 12/12 scheduled line(s) merged`. **That count must read
+`N/N`.** The denominator is every checkbox line in the scheduled section, so anything
+less means the ID pattern missed some. Nothing is deleted on a miss:
+
+- a scheduled line whose ID has no catalog row is parked under a visible
+  `### Scheduled — not found in catalog` bucket (`ORPHANS A.7` in the output)
+- a line that does not parse at all is **left under its original heading**, which is then
+  not deleted (`N unparsed line(s) LEFT IN PLACE`, with the lines listed on stderr)
+- a catalog table row matching neither pattern is reported as `N table row(s) DROPPED`,
+  each one printed with its line number
+
+Any of those three means fix the pattern and re-run from the backup. The count is over
+scheduled *lines*, not IDs: an item scheduled in two cycles contributes two.
 
 What it produces per group row:
 
@@ -119,7 +133,7 @@ reader knows these checkboxes are load-bearing:
 
 ```markdown
 > [!info] These checkboxes are the source of truth
-> One line per item — tick it when it's done (add a score in parentheses if useful).
+> One line per scheduled occurrence — tick it when it's done (add a score in parentheses).
 > A line tagged **`#<scheme>-wkN`** is scheduled into week N of [[<Schedule Page>]]; that
 > page only *queries* these lines, so ticking it there or here updates the same task.
 ```
@@ -133,9 +147,15 @@ python3 "$SKILL_DIR/scripts/verify_merge.py" \
   --backup "$BK" --current "$VAULT/$TOPIC/Modules"
 ```
 
-Checks every ID survived, no ID now appears twice, no URL was lost, and reports how many
-duplicate occurrences were merged per file. That merged count must equal the number of
-scheduled items you had. Exit code 1 gates the rest of the workflow.
+Checks every ID survived, no ID *gained* occurrences, no URL and no `✅` completion date
+was lost, and reports how many duplicate occurrences were merged plus how many scheduled
+repeats were legitimately kept. Exit code 1 gates the rest of the workflow — including
+when the backup directory holds no matching files, so a mistyped `--backup` cannot pass
+vacuously.
+
+An ID appearing more than once afterwards is expected when it was scheduled in more than
+one cycle; the failure condition is an ID coming out with **more** occurrences than it
+went in with, which means the conversion duplicated rather than merged.
 
 ### Step 4: Design the tag scheme
 
@@ -156,24 +176,18 @@ schedule page queries, so its shape decides what stays queryable a year from now
 Ask before committing to a scheme: *"When this item gets swapped for an easier or harder
 variant, does the tag still hold?"* If no, the tag is over-specified.
 
-Rename an existing scheme in one pass, then confirm nothing survives:
+Expect to rename at least once — the first scheme is usually over-specified.
+`scripts/rename_tag.py` previews by default and only writes with `--write`:
 
 ```bash
-python3 - <<'PY'
-import pathlib, re, datetime
-OLD, NEW = r"oldtag-wk", "newtag-wk"
-stamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")
-for p in pathlib.Path("<Folder/Path/To/Topic>").rglob("*.md"):
-    t = p.read_text(encoding="utf-8")
-    if not re.search(OLD, t):
-        continue
-    t = re.sub(OLD, NEW, t)
-    t = re.sub(r"^updated: .*$", f"updated: {stamp}", t, count=1, flags=re.M)
-    p.write_text(t, encoding="utf-8")
-    print(p)
-PY
-grep -rn "oldtag" "<Folder/Path/To/Topic>" --include="*.md"   # must return nothing
+python3 "$SKILL_DIR/scripts/rename_tag.py" \
+  --path "$VAULT/$TOPIC" --old "oldtag-wk" --new "newtag-wk"            # preview
+python3 "$SKILL_DIR/scripts/rename_tag.py" \
+  --path "$VAULT/$TOPIC" --old "oldtag-wk" --new "newtag-wk" --write
 ```
+
+It reports per-file hit counts, bumps `updated:` on changed files, and prints the
+`grep` that must come back empty. Run that grep before moving on.
 
 > Vault-wide `grep -r` over an iCloud-synced vault can take minutes and stall the turn.
 > Scope it to the topic folder plus the journal year, not the vault root.
@@ -233,7 +247,8 @@ Shape to copy (fenced so the template's own examples never appear in the queries
 
 On the **durable hub** (not this year's page), add a `## Tag convention` section with:
 the anatomy table, an explicit **"deliberately not in the tag"** list with the reasoning
-from Step 4, the one-checkbox rule, and which tags the current schedule page queries.
+from Step 4, the one-checkbox-per-occurrence rule, and which tags the current schedule
+page queries.
 Future-you will not re-derive this.
 
 ### Step 8: Log and report
@@ -253,6 +268,11 @@ deliberately excluded from it, and where the backup lives.
 | `Edit` fails on lines with `·`, `→`, emoji or CJK | Do the edit in Python with explicit UTF-8 I/O instead of retrying |
 | Linter rewrote the file between read and edit | Re-read immediately before editing |
 | A `- [ ]` that is not meant to be a tracked todo | Vaults using an opt-in `#task` rule: these catalog checkboxes are progress marks, not agent tasks — do not tag them `#task` |
+| One item scheduled in several cycles | Kept as one line per cycle, each with its own tag and `✅` date — `verify_merge.py` reports these as "scheduled repeat(s) kept", not as a failure |
+| A `_Template.md` whose fenced example contains its own `## Items` table | Fenced blocks are never parsed or rewritten; the real catalog below the fence is the one converted |
+| A scheduled line the ID pattern cannot parse (no link, `[[wikilink]]`, hand-typed) | Left under its heading instead of deleted, and reported — its tag and `✅` date are history no later check could recover |
+| The scheduled heading appears more than once in a note | Every occurrence is harvested and removed, not just the first |
+| `--merge-heading` equal to `--items-heading` | Rejected with exit 2 — merging a section into itself would delete it |
 
 ## Example Invocations
 
@@ -268,9 +288,11 @@ deliberately excluded from it, and where the backup lives.
 
 ## Output
 
-- Every module note's catalog section rewritten as grouped checkboxes, one per item,
-  with previously-scheduled items merged in place (day prefix, tag, `✅` date preserved)
-- The duplicate scheduled section deleted
+- Every module note's catalog section rewritten as grouped checkboxes — one per item,
+  plus one extra line per additional scheduled cycle — with previously-scheduled items
+  merged in place (day prefix, tag, `✅` date preserved)
+- The duplicate scheduled section deleted once every line in it has been absorbed
+  (anything unparsable stays put, under its heading, and is reported)
 - Schedule page queries switched to `tag + path` pairs
 - `_Template.md` updated with fenced examples
 - A `## Tag convention` section on the hub
@@ -290,5 +312,6 @@ catalog-to-tracker/
 ├── README.md
 └── scripts/
     ├── table_to_tasks.py   # catalog table -> grouped checkboxes, merge duplicate section
-    └── verify_merge.py     # post-conversion audit against the backup
+    ├── verify_merge.py     # post-conversion audit against the backup
+    └── rename_tag.py       # preview/apply a tag-scheme rename across the folder
 ```
