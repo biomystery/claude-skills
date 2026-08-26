@@ -33,6 +33,11 @@ Fenced code blocks are never parsed or rewritten — a `_Template.md` whose fenc
 example contains its own `## Items` table keeps that example intact, and the real
 catalog below it is the one converted.
 
+Nothing is deleted on a miss: a scheduled line whose ID has no catalog row is parked
+under a visible bucket, a line that does not parse at all is left under its original
+heading (which is then kept, not deleted), and a catalog row matching neither pattern
+is reported with its line number.
+
 Usage:
   python3 table_to_tasks.py --file "Modules/M01.md" --file "Modules/M02.md" \
       --items-heading "## Items" --merge-heading "## 📅 Scheduled Practice" \
@@ -47,6 +52,8 @@ import sys
 
 DEFAULT_ID = r"[A-Z]+\.\d+"
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+CHECKBOX = re.compile(r"^\s*- \[[ xX]\]")
+SEP_ROW = re.compile(r"^\|[\s:|-]+\|?\s*$")
 
 
 def fence_mask(lines):
@@ -67,21 +74,41 @@ def fence_mask(lines):
     return mask
 
 
-def section_bounds(lines, title, mask=None):
-    """(start, end) line indices of a '## Heading' section, ignoring fenced text."""
+def all_section_bounds(lines, title, mask=None):
+    """[(start, end)] for EVERY '## Heading' section with this title, fences ignored.
+
+    A note can carry the scheduled section more than once (one per cycle); harvesting
+    only the first would leave the rest as live duplicates.
+    """
     if mask is None:
         mask = fence_mask(lines)
-    start = None
+    out = []
     for i, line in enumerate(lines):
-        if not mask[i] and line.strip() == title.strip():
-            start = i
-            break
-    if start is None:
-        return None
-    for j in range(start + 1, len(lines)):
-        if not mask[j] and lines[j].startswith("## "):
-            return (start, j)
-    return (start, len(lines))
+        if mask[i] or line.strip() != title.strip():
+            continue
+        end = len(lines)
+        for j in range(i + 1, len(lines)):
+            if not mask[j] and lines[j].startswith("## "):
+                end = j
+                break
+        out.append((i, end))
+    return out
+
+
+def section_bounds(lines, title, mask=None):
+    """(start, end) line indices of the first '## Heading' section, or None."""
+    found = all_section_bounds(lines, title, mask)
+    return found[0] if found else None
+
+
+def is_filler_row(stripped, nxt):
+    """True for a table header / separator / all-empty row - nothing to preserve."""
+    if SEP_ROW.match(stripped):
+        return True
+    if nxt is not None and SEP_ROW.match(nxt.strip()):
+        return True  # header row, the separator is right below it
+    cells = [c.strip() for c in stripped.strip("|").split("|")]
+    return all(c in ("", "-", "—", "–", "⬜") for c in cells)
 
 
 def build_res(id_pat):
@@ -91,7 +118,11 @@ def build_res(id_pat):
         # table row that is a bold group header: | **A. First group** | — | |
         "group": re.compile(r"^\|\s*\*\*(.+?)\*\*\s*\|"),
         # table row holding a linked item: | [A.1 Title](url) | … |
-        "item": re.compile(rf"^\|\s*\[({id_pat})\s+(.+?)\]\((\S+?)\)\s*\|"),
+        # optional ** so a bolded row stays an item instead of becoming a heading
+        "item": re.compile(
+            rf"^\|\s*(?:\*\*)?\[(?:\*\*)?({id_pat})\s+(.+?)(?:\*\*)?\]"
+            rf"\((\S+?)\)(?:\*\*)?\s*\|"
+        ),
         # checkbox in the merge section: - [x] Mon · A.1 [Title](url) <trailing>
         # the ID may sit before or inside the link, both are accepted
         "sched_out": re.compile(
@@ -104,28 +135,42 @@ def build_res(id_pat):
 
 
 def harvest(lines, merge_heading, res, mask):
-    """Map stable ID -> LIST of scheduled-line parts, from the merge section."""
-    found = {}
+    """Read EVERY merge section: (ID -> list of scheduled parts, leftovers, checkboxes).
+
+    `leftovers` maps each section's (start, end) to the lines in it that could not be
+    parsed as a scheduled item. Those lines are kept, not deleted: a checkbox the ID
+    pattern does not match still carries a tag and a completion date, and dropping it
+    loses history that no later check can recover.
+    """
+    found, leftovers, n_boxes = {}, {}, 0
     if not merge_heading:
-        return found
-    bounds = section_bounds(lines, merge_heading, mask)
-    if not bounds:
-        return found
-    for i in range(bounds[0], bounds[1]):
-        if mask[i]:
-            continue  # fenced example, not a real scheduled line
-        s = lines[i].strip()
-        m = res["sched_out"].match(s) or res["sched_in"].match(s)
-        if m:
-            box, prefix, item_id, title, url, rest = m.groups()
-            found.setdefault(item_id, []).append({
-                "done": box.lower() == "x",
-                "prefix": (prefix or "").strip(),
-                "title": title,
-                "url": url,
-                "rest": rest.rstrip(),
-            })
-    return found
+        return found, leftovers, n_boxes
+    for start, end in all_section_bounds(lines, merge_heading, mask):
+        rest_lines = []
+        for i in range(start + 1, end):
+            line = lines[i]
+            if mask[i]:
+                rest_lines.append(line)  # fenced example: keep it where it is
+                continue
+            s = line.strip()
+            if CHECKBOX.match(s):
+                n_boxes += 1
+            m = res["sched_out"].match(s) or res["sched_in"].match(s)
+            if m:
+                box, prefix, item_id, title, url, rest = m.groups()
+                found.setdefault(item_id, []).append({
+                    "done": box.lower() == "x",
+                    "prefix": (prefix or "").strip(),
+                    "title": title,
+                    "url": url,
+                    "rest": rest.rstrip(),
+                })
+            elif s:
+                rest_lines.append(line)
+        while rest_lines and not rest_lines[-1].strip():
+            rest_lines.pop()
+        leftovers[(start, end)] = rest_lines
+    return found, leftovers, n_boxes
 
 
 def render(item_id, title, url, sched=None):
@@ -144,16 +189,15 @@ def convert(path, args, res):
     lines = text.split("\n")
     mask = fence_mask(lines)
 
-    sched = harvest(lines, args.merge_heading, res, mask)
-    n_sched_lines = sum(len(v) for v in sched.values())
+    sched, leftovers, n_sched_boxes = harvest(lines, args.merge_heading, res, mask)
 
     bounds = section_bounds(lines, args.items_heading, mask)
     if not bounds:
         print(f"  SKIP (no '{args.items_heading}'): {path}")
-        return False
+        return None
 
     hashes = "#" * args.group_level
-    out, used_ids, n_items, n_used_lines = [], set(), 0, 0
+    out, used_ids, n_items, n_used_lines, dropped = [], set(), 0, 0, []
 
     for i in range(bounds[0] + 1, bounds[1]):
         line = lines[i]
@@ -163,6 +207,7 @@ def convert(path, args, res):
         # item test runs FIRST: a bolded link row is an item, not a group header
         im = res["item"].match(line)
         gm = None if im else res["group"].match(line)
+        s = line.strip()
         if gm:
             out.append("")
             out.append(f"{hashes} {gm.group(1)}")
@@ -177,12 +222,13 @@ def convert(path, args, res):
                     out.append(render(item_id, title, url, e))
             else:
                 out.append(render(item_id, title, url))
-        elif line.strip().startswith("|"):
+        elif s.startswith("|"):
+            nxt = lines[i + 1] if i + 1 < bounds[1] else None
+            if not is_filler_row(s, nxt):
+                dropped.append(i)  # a real row neither pattern matched
             continue  # header row, separator row, empty template row
-        elif line.strip() == "":
-            continue
         else:
-            out.append(line)  # prose inside the section survives
+            out.append(line)  # prose and blank lines inside the section survive
 
     orphans = [i for i in sched if i not in used_ids]
     if orphans:
@@ -199,30 +245,63 @@ def convert(path, args, res):
             print(f"  --callout file not found: {callout}", file=sys.stderr)
             print("  write it first (see SKILL.md Step 2) or drop the flag", file=sys.stderr)
             return False
-        new_section += ["", callout.read_text(encoding="utf-8").rstrip("\n")]
+        new_section += ["", callout.read_text(encoding="utf-8").rstrip("\n"), ""]
     new_section += out + [""]
 
-    lines = lines[:bounds[0]] + new_section + lines[bounds[1]:]
+    # rebuild in one pass: the items section becomes the tracker, each merge section
+    # collapses to whatever could not be parsed out of it (usually nothing).
+    regions = [(bounds[0], bounds[1], new_section)]
+    n_kept = 0
+    for (start, end), rest_lines in sorted(leftovers.items()):
+        if rest_lines:
+            regions.append((start, end, [lines[start], ""] + rest_lines + [""]))
+            n_kept += len(rest_lines)
+        else:
+            regions.append((start, end, []))
+    regions.sort()
+    for (s1, e1, _), (s2, _, _) in zip(regions, regions[1:]):
+        if s2 < e1:
+            print(f"  overlapping sections in {path.name}: "
+                  f"'{args.items_heading}' and '{args.merge_heading}' collide, skipped",
+                  file=sys.stderr)
+            return False
 
-    if args.merge_heading:
-        mb = section_bounds(lines, args.merge_heading)
-        if mb:
-            lines = lines[:mb[0]] + lines[mb[1]:]
+    rebuilt, prev = [], 0
+    for s, e, replacement in regions:
+        rebuilt += lines[prev:s] + replacement
+        prev = e
+    rebuilt += lines[prev:]
 
-    text = collapse_blank_runs(lines)
+    text = collapse_blank_runs(rebuilt)
     if not args.no_stamp:
         text = stamp_frontmatter(text)
 
-    flag = "  ORPHANS " + ",".join(orphans) if orphans else ""
+    flags = ""
+    if orphans:
+        flags += "  ORPHANS " + ",".join(orphans)
+    if n_kept:
+        flags += f"  {n_kept} unparsed line(s) LEFT IN PLACE"
+    if dropped:
+        flags += f"  {len(dropped)} table row(s) DROPPED"
     print(f"  {path.name}: {n_items} items, "
-          f"{n_used_lines}/{n_sched_lines} scheduled line(s) merged{flag}")
+          f"{n_used_lines}/{n_sched_boxes} scheduled line(s) merged{flags}")
+    for i in dropped:
+        print(f"    dropped {path.name}:{i + 1}: {lines[i].strip()[:110]}", file=sys.stderr)
+    if n_kept:
+        print(f"    {path.name}: {n_kept} line(s) under '{args.merge_heading}' did not "
+              "parse as scheduled items and were left there rather than deleted - "
+              "check --id-pattern, then merge or remove them by hand", file=sys.stderr)
 
     if args.dry_run:
         return True
     if args.backup_dir:
         bdir = pathlib.Path(args.backup_dir)
         bdir.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, bdir / path.name)
+        dest = bdir / path.name
+        if dest.exists():
+            print(f"  backup name collision, refusing to overwrite {dest}", file=sys.stderr)
+            return False
+        shutil.copy2(path, dest)
     path.write_text(text, encoding="utf-8")
     return True
 
@@ -287,18 +366,33 @@ def main():
         print(f"--id-pattern is not a valid regex: {exc}", file=sys.stderr)
         return 2
 
+    if args.merge_heading and args.merge_heading.strip() == args.items_heading.strip():
+        print("--merge-heading must differ from --items-heading: merging a section into "
+              "itself deletes it", file=sys.stderr)
+        return 2
+
     res = build_res(args.id_pattern)
-    touched = 0
+    touched, failed = 0, 0
     for f in args.file:
         p = pathlib.Path(f)
         if not p.is_file():
             print(f"  not a file: {p}", file=sys.stderr)
+            failed += 1
             continue
         try:
-            touched += bool(convert(p, args, res))
+            result = convert(p, args, res)
         except UnicodeDecodeError:
             print(f"  not UTF-8 text, skipped: {p}", file=sys.stderr)
+            failed += 1
+            continue
+        if result:
+            touched += 1
+        elif result is False:
+            failed += 1
     print(f"{'would convert' if args.dry_run else 'converted'} {touched} file(s)")
+    if failed:
+        print(f"{failed} file(s) failed", file=sys.stderr)
+        return 1
     return 0
 
 
