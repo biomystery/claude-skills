@@ -30,7 +30,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [review-week](review-week/) | `/review-week` | Review the past week's Obsidian daily journal entries, synthesize them by thread into last week's weekly-note retrospective (Wins/Challenges/Lessons), and roll only the still-open items into the current week's priorities — resolves week boundaries from frontmatter dates, not a guessed week number |
 | [project-mgr](project-mgr/) | `/project-mgr` | Build an active Obsidian project from a one-line goal under `Projects/Doing/` — success criteria, workstreams, `#task` next actions, privacy-safe cross-links, and a daily-journal announcement |
 | [hub-from-outline](hub-from-outline/) | `/hub-from-outline` | Scaffold any structured outline — course syllabus, book TOC, training curriculum, program calendar — into an Obsidian hub → module pages → optional dated period notes, with an optional Mermaid outline-index graph |
-| [catalog-to-tracker](catalog-to-tracker/) | `/catalog-to-tracker` | Turn a catalog living in Obsidian tables (skill tree, curriculum, drill library) into a single-source-of-truth checkbox tracker — merges any hand-copied "scheduled" duplicates back by stable ID, verifies nothing was lost against a backup, and designs the tag scheme a query-driven schedule page runs on |
+| [catalog-to-tracker](catalog-to-tracker/) | `/catalog-to-tracker` | Turns a catalog living in Obsidian tables (skill tree, curriculum, drill library) into a single-source-of-truth checkbox tracker — merges any hand-copied "scheduled" duplicates back by stable ID, verifies nothing was lost against a backup, and designs the tag scheme a query-driven schedule page runs on |
 
 ## What is a Claude Code Skill?
 

@@ -3,9 +3,13 @@
 
 Checks, per file:
   1. every stable ID present before is still present after  (nothing dropped)
-  2. no ID gained a second occurrence                        (nothing duplicated)
-  3. the drop in total ID occurrences equals the number of merged duplicates
-  4. every URL present before is still present after         (no dead rewrites)
+  2. no ID gained occurrences                                (nothing invented)
+  3. every URL present before is still present after         (no dead rewrites)
+
+An ID legitimately appears more than once after conversion when it was scheduled in
+more than one cycle: those occurrences are distinct events, each with its own tag and
+completion date. What must never happen is an ID coming out with MORE occurrences than
+it went in with — that is the conversion duplicating rather than merging.
 
 Exit code 1 if any check fails, so it can gate a commit.
 
@@ -57,16 +61,20 @@ def main():
         if dropped:
             failures.append(f"{old.name}: IDs vanished -> {', '.join(dropped)}")
 
-        dupes = sorted(i for i, n in new_ids.items() if n > 1)
-        if dupes:
-            failures.append(f"{old.name}: IDs appear more than once -> {', '.join(dupes)}")
+        gained = sorted(i for i, n in new_ids.items() if n > old_ids.get(i, 0))
+        if gained:
+            detail = ", ".join(f"{i} ({old_ids.get(i, 0)}->{new_ids[i]})" for i in gained)
+            failures.append(f"{old.name}: IDs gained occurrences -> {detail}")
 
         lost_urls = sorted(old_urls - new_urls)
         if lost_urls:
             failures.append(f"{old.name}: {len(lost_urls)} URL(s) lost, e.g. {lost_urls[0]}")
 
         merged = sum(old_ids.values()) - sum(new_ids.values())
-        print(f"  {old.name}: {len(new_ids)} unique IDs, {merged} duplicate occurrence(s) merged")
+        repeats = sum(n - 1 for n in new_ids.values() if n > 1)
+        note = f", {repeats} scheduled repeat(s) kept" if repeats else ""
+        print(f"  {old.name}: {len(new_ids)} unique IDs, "
+              f"{merged} duplicate occurrence(s) merged{note}")
 
     print(f"\nchecked {checked} file(s)")
     if failures:

@@ -6,13 +6,17 @@ user-invocable: true
 
 # Catalog to Tracker
 
-Converts a **catalog** (markdown tables of items) into a **tracker** (one checkbox per
-item, grouped, in catalog order), folds any duplicated "scheduled items" section back
-into it, and designs the **tag scheme** that lets a separate schedule page assemble
-those items with Tasks-plugin queries.
+Converts a **catalog** (markdown tables of items) into a **tracker** (grouped checkboxes
+in catalog order), folds any duplicated "scheduled items" section back into it, and
+designs the **tag scheme** that lets a separate schedule page assemble those items with
+Tasks-plugin queries.
 
-The invariant this skill exists to establish: **one item, one checkbox, one place.**
-Everything else — the weekly plan, the progress dashboard — is a *query*, never a copy.
+The invariant this skill exists to establish: **one checkbox per scheduled occurrence,
+in one place.** An item never scheduled has exactly one unticked line; an item scheduled
+in weeks 1 and 3 has two lines, each with its own tag and `✅` date, because those are
+two distinct practice events and the Tasks plugin has to be able to tell them apart.
+What never happens is the *same* occurrence existing twice. Everything else — the weekly
+plan, the progress dashboard — is a *query*, never a copy.
 
 > Related but different: `/hub-from-outline` **builds** the hub → module pages from an
 > outline. This skill makes those module pages **checkable and schedulable**. They
@@ -46,7 +50,8 @@ todo capture (the vault's backlog / `#task` convention), or catalogs with no sta
 
 | Rule | Why |
 |---|---|
-| **One item, one checkbox** — schedule pages query, never copy | Two checkboxes always diverge; the ✅ date lands on the wrong one |
+| **One checkbox per occurrence** — schedule pages query, never copy | Two checkboxes for the *same* occurrence always diverge; the ✅ date lands on the wrong one |
+| **A repeat across cycles is a new occurrence, not a duplicate** | Collapsing wk1 and wk3 into one line destroys the wk1 completion date |
 | **Match items by stable ID, never by title** | Titles get reworded upstream; `S.4` does not |
 | **Back up before rewriting, verify after** | No git inside most vaults; a bad regex silently eats rows |
 | **Keep unscheduled items in the list, untagged** | The catalog is the menu; scheduling = adding a tag, not moving a line |
@@ -100,10 +105,12 @@ python3 "$SKILL_DIR/scripts/table_to_tasks.py" \
   --dry-run
 ```
 
-Output is `M01 Foo.md: 23 items, 12/12 merged`. **`merged` must read `N/N`.** Anything
-less means the ID pattern missed lines — the script parks unmatched scheduled items under
-a visible `### Scheduled — not found in catalog` bucket rather than dropping them, but
-that heading in the result means fix the pattern and re-run from the backup.
+Output is `M01 Foo.md: 23 items, 12/12 scheduled line(s) merged`. **That count must read
+`N/N`.** Anything less means the ID pattern missed lines — the script parks unmatched
+scheduled items under a visible `### Scheduled — not found in catalog` bucket rather than
+dropping them, but that heading in the result means fix the pattern and re-run from the
+backup. The count is over scheduled *lines*, not IDs: an item scheduled in two cycles
+contributes two.
 
 What it produces per group row:
 
@@ -133,9 +140,13 @@ python3 "$SKILL_DIR/scripts/verify_merge.py" \
   --backup "$BK" --current "$VAULT/$TOPIC/Modules"
 ```
 
-Checks every ID survived, no ID now appears twice, no URL was lost, and reports how many
-duplicate occurrences were merged per file. That merged count must equal the number of
-scheduled items you had. Exit code 1 gates the rest of the workflow.
+Checks every ID survived, no ID *gained* occurrences, no URL was lost, and reports how
+many duplicate occurrences were merged plus how many scheduled repeats were legitimately
+kept. Exit code 1 gates the rest of the workflow.
+
+An ID appearing more than once afterwards is expected when it was scheduled in more than
+one cycle; the failure condition is an ID coming out with **more** occurrences than it
+went in with, which means the conversion duplicated rather than merged.
 
 ### Step 4: Design the tag scheme
 
@@ -227,7 +238,8 @@ Shape to copy (fenced so the template's own examples never appear in the queries
 
 On the **durable hub** (not this year's page), add a `## Tag convention` section with:
 the anatomy table, an explicit **"deliberately not in the tag"** list with the reasoning
-from Step 4, the one-checkbox rule, and which tags the current schedule page queries.
+from Step 4, the one-checkbox-per-occurrence rule, and which tags the current schedule
+page queries.
 Future-you will not re-derive this.
 
 ### Step 8: Log and report
@@ -247,6 +259,8 @@ deliberately excluded from it, and where the backup lives.
 | `Edit` fails on lines with `·`, `→`, emoji or CJK | Do the edit in Python with explicit UTF-8 I/O instead of retrying |
 | Linter rewrote the file between read and edit | Re-read immediately before editing |
 | A `- [ ]` that is not meant to be a tracked todo | Vaults using an opt-in `#task` rule: these catalog checkboxes are progress marks, not agent tasks — do not tag them `#task` |
+| One item scheduled in several cycles | Kept as one line per cycle, each with its own tag and `✅` date — `verify_merge.py` reports these as "scheduled repeat(s) kept", not as a failure |
+| A `_Template.md` whose fenced example contains its own `## Items` table | Fenced blocks are never parsed or rewritten; the real catalog below the fence is the one converted |
 
 ## Example Invocations
 
@@ -262,8 +276,9 @@ deliberately excluded from it, and where the backup lives.
 
 ## Output
 
-- Every module note's catalog section rewritten as grouped checkboxes, one per item,
-  with previously-scheduled items merged in place (day prefix, tag, `✅` date preserved)
+- Every module note's catalog section rewritten as grouped checkboxes — one per item,
+  plus one extra line per additional scheduled cycle — with previously-scheduled items
+  merged in place (day prefix, tag, `✅` date preserved)
 - The duplicate scheduled section deleted
 - Schedule page queries switched to `tag + path` pairs
 - `_Template.md` updated with fenced examples
