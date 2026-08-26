@@ -5,6 +5,10 @@ Checks, per file:
   1. every stable ID present before is still present after  (nothing dropped)
   2. no ID gained occurrences                                (nothing invented)
   3. every URL present before is still present after         (no dead rewrites)
+  4. every completion date present before is still present  (no lost history)
+
+A backup that matches no files is itself a failure: an empty or mistyped --backup would
+otherwise make this gate pass vacuously.
 
 An ID legitimately appears more than once after conversion when it was scheduled in
 more than one cycle: those occurrences are distinct events, each with its own tag and
@@ -23,6 +27,7 @@ import re
 import sys
 
 DEFAULT_ID = r"[A-Z]+\.\d+"
+DONE_RE = re.compile(r"✅\s*\d{4}-\d{2}-\d{2}")
 
 
 def scan(path, id_re, url_re):
@@ -30,7 +35,7 @@ def scan(path, id_re, url_re):
     ids = {}
     for m in id_re.finditer(text):
         ids[m.group(0)] = ids.get(m.group(0), 0) + 1
-    return ids, set(url_re.findall(text))
+    return ids, set(url_re.findall(text)), len(DONE_RE.findall(text))
 
 
 def main():
@@ -41,11 +46,21 @@ def main():
     ap.add_argument("--glob", default="*.md")
     args = ap.parse_args()
 
-    id_re = re.compile(rf"\b{args.id_pattern}\b")
+    try:
+        id_re = re.compile(rf"\b(?:{args.id_pattern})\b")
+    except re.error as exc:
+        print(f"--id-pattern is not a valid regex: {exc}", file=sys.stderr)
+        sys.exit(2)
     url_re = re.compile(r"\]\((https?://\S+?)\)")
 
     backup = pathlib.Path(args.backup)
     current = pathlib.Path(args.current)
+    if not backup.is_dir():
+        print(f"--backup is not a directory: {backup}", file=sys.stderr)
+        sys.exit(2)
+    if not current.is_dir():
+        print(f"--current is not a directory: {current}", file=sys.stderr)
+        sys.exit(2)
     failures, checked = [], 0
 
     for old in sorted(backup.glob(args.glob)):
@@ -54,8 +69,8 @@ def main():
             failures.append(f"{old.name}: missing after conversion")
             continue
         checked += 1
-        old_ids, old_urls = scan(old, id_re, url_re)
-        new_ids, new_urls = scan(new, id_re, url_re)
+        old_ids, old_urls, old_done = scan(old, id_re, url_re)
+        new_ids, new_urls, new_done = scan(new, id_re, url_re)
 
         dropped = sorted(set(old_ids) - set(new_ids))
         if dropped:
@@ -70,6 +85,10 @@ def main():
         if lost_urls:
             failures.append(f"{old.name}: {len(lost_urls)} URL(s) lost, e.g. {lost_urls[0]}")
 
+        if new_done < old_done:
+            failures.append(f"{old.name}: {old_done - new_done} completion date(s) lost "
+                            f"({old_done}->{new_done})")
+
         merged = sum(old_ids.values()) - sum(new_ids.values())
         repeats = sum(n - 1 for n in new_ids.values() if n > 1)
         note = f", {repeats} scheduled repeat(s) kept" if repeats else ""
@@ -77,6 +96,9 @@ def main():
               f"{merged} duplicate occurrence(s) merged{note}")
 
     print(f"\nchecked {checked} file(s)")
+    if not checked and not failures:
+        print(f"\nFAILED:\n  - nothing to check: no '{args.glob}' files in {backup}")
+        sys.exit(1)
     if failures:
         print("\nFAILED:")
         for f in failures:
