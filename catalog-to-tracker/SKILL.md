@@ -106,11 +106,18 @@ python3 "$SKILL_DIR/scripts/table_to_tasks.py" \
 ```
 
 Output is `M01 Foo.md: 23 items, 12/12 scheduled line(s) merged`. **That count must read
-`N/N`.** Anything less means the ID pattern missed lines — the script parks unmatched
-scheduled items under a visible `### Scheduled — not found in catalog` bucket rather than
-dropping them, but that heading in the result means fix the pattern and re-run from the
-backup. The count is over scheduled *lines*, not IDs: an item scheduled in two cycles
-contributes two.
+`N/N`.** The denominator is every checkbox line in the scheduled section, so anything
+less means the ID pattern missed some. Nothing is deleted on a miss:
+
+- a scheduled line whose ID has no catalog row is parked under a visible
+  `### Scheduled — not found in catalog` bucket (`ORPHANS A.7` in the output)
+- a line that does not parse at all is **left under its original heading**, which is then
+  not deleted (`N unparsed line(s) LEFT IN PLACE`, with the lines listed on stderr)
+- a catalog table row matching neither pattern is reported as `N table row(s) DROPPED`,
+  each one printed with its line number
+
+Any of those three means fix the pattern and re-run from the backup. The count is over
+scheduled *lines*, not IDs: an item scheduled in two cycles contributes two.
 
 What it produces per group row:
 
@@ -126,7 +133,7 @@ reader knows these checkboxes are load-bearing:
 
 ```markdown
 > [!info] These checkboxes are the source of truth
-> One line per item — tick it when it's done (add a score in parentheses if useful).
+> One line per scheduled occurrence — tick it when it's done (add a score in parentheses).
 > A line tagged **`#<scheme>-wkN`** is scheduled into week N of [[<Schedule Page>]]; that
 > page only *queries* these lines, so ticking it there or here updates the same task.
 ```
@@ -140,9 +147,11 @@ python3 "$SKILL_DIR/scripts/verify_merge.py" \
   --backup "$BK" --current "$VAULT/$TOPIC/Modules"
 ```
 
-Checks every ID survived, no ID *gained* occurrences, no URL was lost, and reports how
-many duplicate occurrences were merged plus how many scheduled repeats were legitimately
-kept. Exit code 1 gates the rest of the workflow.
+Checks every ID survived, no ID *gained* occurrences, no URL and no `✅` completion date
+was lost, and reports how many duplicate occurrences were merged plus how many scheduled
+repeats were legitimately kept. Exit code 1 gates the rest of the workflow — including
+when the backup directory holds no matching files, so a mistyped `--backup` cannot pass
+vacuously.
 
 An ID appearing more than once afterwards is expected when it was scheduled in more than
 one cycle; the failure condition is an ID coming out with **more** occurrences than it
@@ -261,6 +270,9 @@ deliberately excluded from it, and where the backup lives.
 | A `- [ ]` that is not meant to be a tracked todo | Vaults using an opt-in `#task` rule: these catalog checkboxes are progress marks, not agent tasks — do not tag them `#task` |
 | One item scheduled in several cycles | Kept as one line per cycle, each with its own tag and `✅` date — `verify_merge.py` reports these as "scheduled repeat(s) kept", not as a failure |
 | A `_Template.md` whose fenced example contains its own `## Items` table | Fenced blocks are never parsed or rewritten; the real catalog below the fence is the one converted |
+| A scheduled line the ID pattern cannot parse (no link, `[[wikilink]]`, hand-typed) | Left under its heading instead of deleted, and reported — its tag and `✅` date are history no later check could recover |
+| The scheduled heading appears more than once in a note | Every occurrence is harvested and removed, not just the first |
+| `--merge-heading` equal to `--items-heading` | Rejected with exit 2 — merging a section into itself would delete it |
 
 ## Example Invocations
 
@@ -279,7 +291,8 @@ deliberately excluded from it, and where the backup lives.
 - Every module note's catalog section rewritten as grouped checkboxes — one per item,
   plus one extra line per additional scheduled cycle — with previously-scheduled items
   merged in place (day prefix, tag, `✅` date preserved)
-- The duplicate scheduled section deleted
+- The duplicate scheduled section deleted once every line in it has been absorbed
+  (anything unparsable stays put, under its heading, and is reported)
 - Schedule page queries switched to `tag + path` pairs
 - `_Template.md` updated with fenced examples
 - A `## Tag convention` section on the hub

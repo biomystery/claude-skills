@@ -16,8 +16,10 @@ practice events apart. The weekly plan and the progress dashboard are views, not
 - Rewrites a `## Items` table as `### Group` headings + `- [ ] [A.1 Title](url)` checkboxes
 - Merges a duplicate scheduled-items section into the catalog **by stable ID**, preserving
   the day prefix, week tag, `✅` completion date, and any score note verbatim
-- Parks scheduled items with no catalog match under a visible bucket — never drops them
-- Verifies the result against a pre-change backup: no ID lost, none *gained*, no URL lost
+- Parks scheduled items with no catalog match under a visible bucket — never drops them,
+  and leaves a scheduled line it cannot parse where it found it rather than deleting it
+- Verifies the result against a pre-change backup: no ID lost, none *gained*, no URL and
+  no `✅` completion date lost
 - Guides the **tag scheme** design: what belongs in a scheduling tag and — more importantly
   — what must stay out of it (level/grade, person)
 - Fences template example tasks so a `_Template.md` never pollutes live queries
