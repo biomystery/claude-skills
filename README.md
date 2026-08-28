@@ -31,6 +31,7 @@ A collection of reusable [Claude Code](https://claude.ai/claude-code) skills —
 | [project-mgr](project-mgr/) | `/project-mgr` | Build an active Obsidian project from a one-line goal under `Projects/Doing/` — success criteria, workstreams, `#task` next actions, privacy-safe cross-links, and a daily-journal announcement |
 | [hub-from-outline](hub-from-outline/) | `/hub-from-outline` | Scaffold any structured outline — course syllabus, book TOC, training curriculum, program calendar — into an Obsidian hub → module pages → optional dated period notes, with an optional Mermaid outline-index graph |
 | [catalog-to-tracker](catalog-to-tracker/) | `/catalog-to-tracker` | Turns a catalog living in Obsidian tables (skill tree, curriculum, drill library) into a single-source-of-truth checkbox tracker — merges any hand-copied "scheduled" duplicates back by stable ID, verifies nothing was lost against a backup, and designs the tag scheme a query-driven schedule page runs on |
+| [note-to-moc](note-to-moc/) | `/note-to-moc` | Refactor an overgrown Obsidian note into a MOC hub + spoke notes in subfolders — slices by exact line range so verbatim content is never retyped, moves via the Obsidian CLI so links rewrite themselves, verifies zero content loss and zero broken links |
 
 ## What is a Claude Code Skill?
 
