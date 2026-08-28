@@ -51,7 +51,7 @@ those are already a spoke; give them a hub *neighbour*, do not carve them up).
 | **Back up before the first write** | Every integrity check later diffs against this backup. |
 | **Let the note's own structure choose the clusters** | Its existing section groupings already encode how it is read. An imposed taxonomy fights the reader. |
 | **The hub holds no verbatim bulk** | The moment a hub carries a long quote, it stops being scannable and you are back where you started. |
-| **Move with `obsidian move`, never `mv`** | Obsidian's file manager rewrites every inbound link vault-wide. `mv` silently breaks them all. |
+| **Move and rename with the Obsidian CLI, never `mv`** | Obsidian's file manager rewrites every inbound link vault-wide. `mv` silently breaks them all, and nothing warns you. |
 | **Verify content AND links after every structural step** | These fail independently and both fail silently. |
 | **Never delete "superseded" content without confirming it exists elsewhere verbatim** | "This is obviously covered in the newer section" is how the one unique paragraph disappears. |
 
@@ -177,19 +177,41 @@ grep -n "\[\[#" *.md    # each hit needs [[Note#Heading]], or it silently dead-e
 
 ### Step 7: Move into subfolders with the Obsidian CLI
 
+> See the `obsidian-cli` skill for the full command surface. The commands that matter here
+> are `move` (relocate/rename a file) and `folders` (confirm the tree). The Obsidian app
+> must be **running** — the CLI drives the live app, not the files on disk.
+
+**`obsidian move` operates on FILES ONLY.** Verified: passing a folder path returns
+`Error: "<path>" is a folder, not a file.` So create the destination folders on disk first,
+then move each note individually:
+
 ```bash
-mkdir -p Foundation Threads Decisions Archive
-obsidian vault="<VaultName>" move path="<folder>/<file>.md" to="<folder>/Threads" </dev/null
+mkdir -p Foundation Threads Decisions Archive     # plain mkdir is fine; folders carry no links
+
+mv_one() {   # $1 = source path relative to vault, $2 = destination folder
+  obsidian vault="<VaultName>" move path="$1" to="$2" </dev/null
+}
+mv_one "<folder>/Thread 1 - Vendor.md"   "<folder>/Threads"
+mv_one "<folder>/Decision Log.md"        "<folder>/Decisions"
 ```
 
-Three gotchas, all encountered in practice:
+Verified behaviour: moving a file this way rewrites inbound links across the whole vault.
+A link written as `[[project/sub/Note|alias]]` becomes `[[Note|alias]]` after the move —
+Obsidian normalises to the shortest unique form. That is correct; do not revert it.
+
+Three gotchas, all hit in practice:
 
 - **`</dev/null` is required** in loops. The `obsidian` CLI reads stdin, so a `while read`
-  loop over a heredoc gets its input eaten after the first iteration.
-- **Keep the hub where it is.** External notes (daily journals) link to the hub; leaving it
-  put means those links never change.
-- **Obsidian rewrites full paths to shortest form.** `[[Projects/A/B/Note|x]]` becomes
-  `[[Note|x]]`. This is correct and desirable; do not "fix" it back.
+  loop over a heredoc has its input consumed after the first iteration and the rest silently
+  never run. Redirect stdin on every invocation.
+- **Keep the hub where it is.** Notes elsewhere (daily journals, other projects) link to the
+  hub; leaving it put means those links never need rewriting at all.
+- **To move or rename a whole folder**, do it **inside the Obsidian app** (drag in the file
+  explorer, or right-click → Rename). The app performs the same link rewriting. There is no
+  CLI equivalent. Never `mv` a folder.
+
+To rename a note rather than relocate it, use `obsidian rename path="<path>" name="<new name>"`
+— also file-only, also link-preserving.
 
 ### Step 8: Handle superseded sibling notes
 
@@ -256,6 +278,8 @@ verification result, and where the backup lives.
 | `Edit` tool fails on a line that looks identical | Obsidian's linter reformatted it (table column padding) between read and edit | Re-read, then use a regex replace instead of exact-string |
 | Link checker flags `[[Note#Heading\|alias]]` inside a table | The escaped pipe `\|` gets captured into the anchor | Strip a trailing `\` before comparing (the bundled script does) |
 | Everything reported as a broken link | `--vault` pointed at the project folder | Pass the vault root |
+| `Error: "..." is a folder, not a file` | `obsidian move` only accepts files | `mkdir` the destination, move notes one by one; move *folders* inside the app |
+| Only the first file in a move loop actually moved | The CLI ate the loop's stdin | Add `</dev/null` to every `obsidian` call |
 | Numbered list renders as one paragraph | The blank line above it was consumed while unwrapping | Reinsert the blank line |
 
 ## Example Invocations
@@ -285,7 +309,7 @@ verification result, and where the backup lives.
 ## Requirements
 
 - **Python 3** — section slicing and verification
-- **Obsidian CLI** (`obsidian`) with the app running — link-preserving moves. Optional if you move files inside the app instead.
+- **Obsidian CLI** (`obsidian`) with the app **running** — link-preserving moves and renames (see the `obsidian-cli` skill). Optional only if you move files inside the app instead; `mv` is never an acceptable substitute.
 - An Obsidian vault (the verifier locates the root by its `.obsidian/` directory)
 
 ## Skill Structure

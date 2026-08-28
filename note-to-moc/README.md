@@ -17,7 +17,7 @@ and three parallel threads are interleaved by date.
 - **Derives the folder structure from the note's own shape** instead of imposing a taxonomy
 - **Slices by line range** — quoted correspondence, transcripts and legal text arrive byte-identical
 - **Writes only the hub fresh** — status, next actions, thread table, map, standing facts
-- **Moves via `obsidian move`** so Obsidian rewrites every inbound link vault-wide
+- **Moves via the Obsidian CLI** (`obsidian move`) so Obsidian rewrites every inbound link vault-wide — `mv` would silently break them all
 - **Verifies twice** — every substantive original line still exists; every wikilink and heading anchor resolves
 - **Fixes the Obsidian line-break trap** — single newlines render as `<br>`, so hard-wrapped prose breaks mid-sentence
 - **Preserves superseded notes** with a banner and a was-here → now-here pointer table
@@ -36,7 +36,7 @@ flowchart TD
     H --> I[Assemble spokes\nbacklink + status callout]
     I --> J[Write hub fresh\nunder ~120 lines]
     J --> K[Fix same-file anchors\nnow cross-file]
-    K --> L[obsidian move\ninto subfolders]
+    K --> L[mkdir folders +\nobsidian move each file]
     L --> M[verify_refactor.py\ncontent + links]
     M --> N{Misses or\nbroken links?}
     N -->|Yes| O[Restore from .backup/\nor fix anchors]
@@ -120,8 +120,9 @@ RESULT: links OK
 ## Requirements
 
 - **Python 3** — slicing and verification
-- **Obsidian CLI** with the app running — link-preserving moves
-  (optional: move inside the app instead; never use `mv`)
+- **Obsidian CLI** with the app running — link-preserving moves and renames
+  (see the `obsidian-cli` skill). Optional only if you move files inside the app
+  instead; `mv` is never an acceptable substitute.
 - An Obsidian vault
 
 ## Supported inputs / edge cases
@@ -134,6 +135,8 @@ RESULT: links OK
 | Same-file `[[#Anchor]]` links | Rewritten to `[[Note#Anchor]]` after the split |
 | Escaped pipes `\|` in table wikilinks | Handled — trailing `\` stripped before anchor comparison |
 | iCloud / OneDrive-backed vault | Avoids vault-wide `grep -r`, which hangs; uses a skip-listed walk |
+| Moving a whole folder | `obsidian move` rejects folders (files only) — destination folders are `mkdir`'d and notes moved individually; folder moves go through the app |
+| Multi-file move loop | Every `obsidian` call gets `</dev/null`; the CLI otherwise eats the loop's stdin and only the first move runs |
 | `--vault` pointed at the wrong folder | Warns when `.obsidian/` is absent, before reporting false broken links |
 | Obsidian linter reformatting mid-edit | Documented — re-read and use regex replace |
 
