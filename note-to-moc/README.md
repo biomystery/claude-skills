@@ -15,8 +15,8 @@ and three parallel threads are interleaved by date.
 ## What It Does
 
 - **Diagnoses first, splits second** — reports hotspots, mega-bullet density, and a buried
-  status heading, then a `SPLIT` / `INDIVISIBLE` / `WATCH` / `LEAVE` verdict, so the split
-  answers the actual problem rather than the line count
+  status heading, then a `SPLIT` / `INDIVISIBLE` / `UNSTRUCTURED` / `WATCH` / `LEAVE`
+  verdict, so the split answers the actual problem rather than the line count
 - **Derives the folder structure from the note's own shape** instead of imposing a taxonomy
 - **Slices by line range** — quoted correspondence, transcripts and legal text arrive byte-identical
 - **Writes only hubs fresh** — status, next actions, thread table, map, standing facts
@@ -27,8 +27,11 @@ and three parallel threads are interleaved by date.
   `INDIVISIBLE`; a `SPLIT` at depth 3 is treated as evidence the top-level clusters were wrong,
   not as licence to add a fourth level
 - **Moves via the Obsidian CLI** (`obsidian move`) so Obsidian rewrites every inbound link vault-wide — `mv` would silently break them all
-- **Verifies three ways** — every substantive original line still exists; every wikilink and
-  heading anchor resolves; every note is reachable from the hub
+- **Verifies four ways** — every substantive original line still exists (with a *compared*
+  count, so a check that silently ran on nothing cannot read as a pass); every wikilink and
+  heading anchor in the new notes resolves; every link **from the rest of the vault** into
+  the refactored notes still resolves; every note is reachable from the hub and listed in
+  its map
 - **Fixes the Obsidian line-break trap** — single newlines render as `<br>`, so hard-wrapped prose breaks mid-sentence
 - **Preserves superseded notes** with a banner and a was-here → now-here pointer table
 
@@ -40,7 +43,7 @@ flowchart TD
     B --> C{VERDICT}
     C -->|WATCH / LEAVE| D(["Reorder in place\nsplitting adds nav cost"])
     C -->|INDIVISIBLE| D2(["Leave whole\ngive it a hub neighbour"])
-    C -->|SPLIT| E[Propose clusters\nfrom existing headings]
+    C -->|SPLIT| E[Diagnose + propose clusters\nSteps 1-2]
     E --> F[Confirm names + prefixes\ncheck basenames vault-wide]
     F --> G[Back up to .backup/]
     G --> H[Slice sections\nby exact line range]
@@ -48,7 +51,8 @@ flowchart TD
     I --> J[Write hub fresh\nunder ~120 lines, full map]
     J --> K[Fix same-file anchors\nnow cross-file]
     K --> L[obsidian move\npre-existing notes only]
-    L --> M[verify_refactor.py\ncontent + links + reach]
+    L --> L2[Merge superseded siblings\nbanner + pointer table]
+    L2 --> M[verify_refactor.py\ncontent + links + reach]
     M --> N{Misses, broken links,\nor stranded notes?}
     N -->|Yes| O[Restore from .backup/\nor fix anchors and map]
     O --> M
@@ -56,7 +60,7 @@ flowchart TD
     P --> Q[measure_sections.py --brief\nover the whole tree]
     Q --> R{Any note\nstill SPLIT?}
     R -->|Yes, depth < 3| S[Promote to sub-hub\nname + path unchanged]
-    S --> B
+    S --> E
     R -->|Yes, at depth 3| T[Re-cut level-1 clusters\ndo not go deeper]
     T --> E
     R -->|No| U(["Done\nhub + spokes, links intact"])
@@ -149,16 +153,24 @@ LEAVE        Foundation/Background.md      (88 lines - healthy)
 
 --- after refactor ---
 CONTENT - checking 1 original(s) against 11 new file(s)
-  BigNote.md: 12 line(s) not found verbatim     ← all confirmed intentional rewrites
+  (lines shorter than 10 chars are not compared; headings are compared separately)
 
-LINKS - 63 wikilink(s) checked
+  BigNote.md: 604 line(s) compared, 12 not found   ← all confirmed intentional rewrites
+
+LINKS - 63 wikilink(s) checked in the refactored notes
   broken links : 0
   ambiguous    : 0  (warning - Obsidian picks the nearest)
   bad anchors  : 0
 
+INBOUND - 4 link(s) from the rest of the vault into the refactored notes
+  broken links : 0
+  bad anchors  : 1
+     Journal/2026-06-14.md -> [[BigNote#Vendor decision]]  (heading gone - it moved to a spoke)
+
 REACH - 11 note(s) under long-running-matter, 11 reachable from the hub
   unreachable  : 0
-RESULT: links OK
+  not in map   : 0  (warning - hub's map should list every note)
+RESULT: ERRORS - fix before continuing
 ```
 
 ## Requirements
@@ -182,6 +194,16 @@ RESULT: links OK
 | `[[folder/Note]]` relative to the linking file | Resolved the way Obsidian resolves it — vault-root path, then source-folder-relative, then basename |
 | Two notes sharing a basename | Reported as `ambiguous` with both candidates, as a warning — Obsidian picks the nearest |
 | A note nothing links to | `REACH` reports it as unreachable; bytes surviving is not the same as being findable |
+| A note reachable only via a sub-hub, missing from the root map | `not in map` warning — `REACH` alone cannot see this, because reachability is transitive |
+| A link from elsewhere in the vault into the refactored notes | `INBOUND` re-resolves it, including its heading anchor; pre-existing breakage elsewhere in the vault is not reported |
+| Links inside code fences, backticks or `%%comments%%` | Ignored — they create no backlink in Obsidian, and counting them made stranded notes look reachable |
+| An empty, truncated, or unterminated-frontmatter backup | `CONTENT` prints a compared-line count and fails when it is zero, instead of reporting "0 not found" |
+| A note sectioned with `#` rather than `##` | Top level is the shallowest depth carrying ≥3 headings, so it is not misreported as `INDIVISIBLE` |
+| A big note with no headings at all | `UNSTRUCTURED` — no split can be proposed; it is not silently called indivisible |
+| An unterminated code fence | Masks nothing, rather than blanking the rest of the file and hiding every section and link after it |
+| A path-qualified link that matches nothing (`[[../Note]]`, `[[stale/path/Note]]`) | Reported broken; no basename fallback, which used to resolve it to a different note |
+| A bare `#tag` at column 0 | Not treated as a heading, so `[[Note#tag]]` no longer validates against it |
+| Non-UTF-8 note in a sweep | Decoded leniently; one bad file no longer aborts the rest of the run |
 | Block references `[[Note#^abc123]]` | Skipped by the anchor check — a block ref is not a heading |
 | Headings inside fenced code blocks | Masked, so a `## Status` in a bash example is neither a section nor an anchor |
 | Callout title used as an anchor | Reported as a bad anchor — a callout title is not a heading |

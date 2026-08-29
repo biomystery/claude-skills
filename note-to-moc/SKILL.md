@@ -1,6 +1,6 @@
 ---
 name: note-to-moc
-description: Refactors one overgrown Obsidian note (500+ lines, or any note where the current status is buried and parallel threads are interleaved) into a compact MOC hub plus topic spoke notes grouped into subfolders — extracting by exact line range so verbatim content is never retyped, moving files with the Obsidian CLI so links rewrite themselves, recursing into any spoke that is still overgrown so it becomes a sub-hub of its own, and verifying zero content loss, zero broken links, and zero stranded notes. Use when a long-running note has become unreadable, not when building a new hub from an outline.
+description: Refactors one overgrown Obsidian note (400+ lines, or any note where the current status is buried and parallel threads are interleaved) into a compact MOC hub plus topic spoke notes grouped into subfolders — extracting by exact line range so verbatim content is never retyped, moving files with the Obsidian CLI so links rewrite themselves, recursing into any spoke that is still overgrown so it becomes a sub-hub of its own, and verifying zero content loss, zero broken links, and zero stranded notes. Use when a long-running note has become unreadable, not when building a new hub from an outline.
 user-invocable: true
 ---
 
@@ -36,7 +36,7 @@ Only hubs are written fresh, because routing is the one part that is genuinely n
 
 ## When to Use
 
-- A note is 500+ lines, or any length where you scroll to find the current state
+- A note is 400+ lines, or any length where you scroll to find the current state
 - The "Status" / "Current posture" section sits in the bottom half of the file
 - Chronological updates are out of order, or newer decisions sit *below* older ones
 - Two or more parallel threads (tracks, workstreams, counterparties) are interleaved by date
@@ -97,6 +97,7 @@ prints a `VERDICT`:
 |---|---|---|
 | `SPLIT` | big enough, and has ≥3 top-level sections to split into | proceed |
 | `INDIVISIBLE` | big but only one or two sections — one document, not a note | leave whole, give it a hub neighbour |
+| `UNSTRUCTURED` | big and has no headings at all | no split can be proposed; add headings first, or check it is the right file |
 | `WATCH` | borderline | reorder in place; splitting costs more than it saves |
 | `LEAVE` | healthy | stop |
 
@@ -136,8 +137,13 @@ obsidian search query="Background" </dev/null   # or: find "$VAULT" -name "Backg
 ### Step 3: Back up
 
 ```bash
-cd "<project folder>" && mkdir -p .backup && cp *.md .backup/
+cd "<project folder>"
+rsync -a --exclude='.backup/' --include='*/' --include='*.md' --exclude='*' ./ .backup/
 ```
+
+`rsync` rather than `cp *.md` because the backup must **mirror the tree**: sibling notes
+already living in subfolders have to be captured too, and Step 11 backs up spokes from
+inside their cluster folders.
 
 A leading-dot folder is not indexed by Obsidian, so the backup will not pollute search,
 graph view, or link resolution.
@@ -195,9 +201,15 @@ arrives by search can climb all the way out:
 [[<Root hub>]] › [[<Sub-hub>|← back]]
 ```
 
-Write each spoke **directly into its destination folder**. New files have no inbound links
-yet, so nothing needs rewriting — `obsidian move` (Step 7) is only for files that already
-exist elsewhere in the vault.
+Create the cluster folders first, then write each spoke **directly into its destination
+folder**:
+
+```bash
+mkdir -p Foundation Threads Decisions Archive   # folders carry no links; plain mkdir is fine
+```
+
+New files have no inbound links yet, so nothing needs rewriting — `obsidian move` (Step 7)
+is only for files that already exist elsewhere in the vault.
 
 ### Step 6: Write the hub fresh
 
@@ -223,7 +235,10 @@ the single entry point no matter how deep the tree goes:
 Then fix anchors that were same-file and are now cross-file:
 
 ```bash
-grep -n "\[\[#" *.md    # each hit needs [[Note#Heading]], or it silently dead-ends
+# recursive: Step 5 wrote the spokes into subfolders, which is where sliced
+# content carrying the original same-file anchors landed
+grep -rn "\[\[#" --include='*.md' . | grep -v '/\.backup/'
+# each hit needs [[Note#Heading]], or it silently dead-ends
 ```
 
 Callout titles are **not** heading anchors. `[[Hub#Current posture]]` does not resolve to a
@@ -244,8 +259,7 @@ created in Step 5 were written straight into their folder and need nothing here.
 then move each note individually:
 
 ```bash
-mkdir -p Foundation Threads Decisions Archive     # plain mkdir is fine; folders carry no links
-
+# the cluster folders already exist from Step 5
 mv_one() {   # $1 = source path relative to vault, $2 = destination folder
   obsidian vault="<VaultName>" move path="$1" to="$2" </dev/null
 }
@@ -253,9 +267,10 @@ mv_one "<folder>/Thread 1 - Vendor.md"   "<folder>/Threads"
 mv_one "<folder>/Decision Log.md"        "<folder>/Decisions"
 ```
 
-Verified behaviour: moving a file this way rewrites inbound links across the whole vault.
-A link written as `[[project/sub/Note|alias]]` becomes `[[Note|alias]]` after the move —
-Obsidian normalises to the shortest unique form. That is correct; do not revert it.
+Moving a file this way rewrites inbound links across the whole vault. How the rewritten
+link is *spelled* follows **Settings → Files & Links → New link format**: on the default
+"Shortest path when possible", `[[project/sub/Note|alias]]` becomes `[[Note|alias]]`. Under
+"Absolute path in vault" it goes the other way. Either is correct; do not revert it.
 
 Three gotchas, all hit in practice:
 
@@ -303,15 +318,25 @@ Pass the *root* originals only — per-level backups are undo, not evidence.
 subfolder. Passing the subfolder makes every vault-relative link look broken — a very
 convincing false alarm. The script warns when `.obsidian/` is missing.
 
-Three reports, each failing independently:
+Four reports, each failing independently:
 
-- **CONTENT** — every substantive original line still exists somewhere in the tree
-- **LINKS** — broken targets and bad anchors (fatal); duplicate basenames (`ambiguous`,
-  a warning — Obsidian resolves by proximity, but the hub and a spoke may now mean
-  different notes by the same name)
-- **REACH** — with `--hub`, every note reachable by following links from the hub. This is
-  what catches a promoted sub-hub whose children were never wired into the map: the bytes
-  survive, but nothing points at them.
+- **CONTENT** — every substantive original line still exists somewhere in the tree. It
+  prints how many lines it *compared*, not just how many it missed: a check that silently
+  compared nothing is the one failure a "0 not found" line would hide.
+- **LINKS** — broken targets and bad anchors in the notes you wrote (fatal); duplicate
+  basenames (`ambiguous`, a warning — Obsidian resolves by proximity, but the hub and a
+  spoke may now mean different notes by the same name)
+- **INBOUND** — links from the **rest of the vault** into the refactored notes. This is the
+  risk the skill is built around: `mv` breaks every inbound link and nothing warns you. It
+  is invisible if you only check the files you just wrote. It also catches a daily journal's
+  `[[BigNote#Some heading]]` where that heading has since moved into a spoke.
+- **REACH** — with `--hub`, every note reachable by following links from the hub (fatal),
+  plus `not in map`, a warning for notes that are reachable but which the hub does not link
+  directly. Reachability is transitive, so a sub-hub linking its own children keeps them
+  reachable even when the root hub's Map omits them — `not in map` is what catches that.
+
+Links inside code fences, inline backticks and `%%comments%%` are ignored throughout: they
+create no backlink in Obsidian, and counting them made a stranded note look reachable.
 
 Read the content misses one at a time. A line reported missing is either:
 
@@ -363,16 +388,18 @@ mkdir -p ".backup/<Cluster>" && cp "<Cluster>/Thread 2 - Vendor.md" ".backup/<Cl
 mkdir -p "<Cluster>/Thread 2 - Vendor"          # children live in a folder beside the sub-hub
 ```
 
-Then re-enter **Steps 1, 2, 4, 5 and 6 with the spoke as the source**: diagnose it, choose
-its sub-clusters, slice it by line range, write its sub-spokes directly into the new folder
-with a depth-3 breadcrumb, and rewrite the spoke itself as a sub-hub.
+Then re-enter **Steps 1, 2, 4, 5, 6 and 10 with the spoke as the source**: diagnose it,
+choose its sub-clusters, slice it by line range, write its sub-spokes directly into the new
+folder with a depth-3 breadcrumb, rewrite the spoke itself as a sub-hub, and unwrap the
+prose you just authored. Step 3 is replaced by the backup above; Steps 7 and 8
+are no-ops during a promotion — nothing is moved, and there are no superseded siblings.
 
 Four things that make recursion safe rather than a slow-motion mess:
 
 | | |
 |---|---|
 | **The sub-hub keeps its filename and path** | Every inbound link — root hub, daily journals, other projects — still resolves. Nothing is moved, so nothing is rewritten. |
-| **The root hub's Map gains the children, indented** | Otherwise the promotion hides content one click deeper with no sign it exists. The root hub's status row for the spoke does not change; it still points at the same note. |
+| **The root hub's Map gains the children, indented** | Otherwise the promotion hides content one click deeper with no sign it exists. Step 9's `not in map` warning catches this — `REACH` alone will not, because the sub-hub links its own children. The root hub's status row for the spoke does not change; it still points at the same note. |
 | **The per-level backup is undo only** | Content is still verified against the root original in Step 9. Never swap `--original` to a spoke backup — that would let a level-1 loss pass unnoticed. |
 | **Re-run Step 9 from the project root** | `--new-dir` walks recursively and `--hub` checks reachability, so one run re-verifies every level at once. Do not verify per level. |
 
@@ -401,7 +428,8 @@ where the backup lives.
 | Only the first file in a move loop actually moved | The CLI ate the loop's stdin | Add `</dev/null` to every `obsidian` call |
 | Numbered list renders as one paragraph | The blank line above it was consumed while unwrapping | Reinsert the blank line |
 | `[[Hub#Current posture]]` dead-ends | A callout title is not a heading anchor | Give the section a real `##` heading |
-| Sub-spokes exist but nobody can find them | The sub-hub was written but the root hub's Map was never updated | Step 9's `REACH` check catches this; add the indented children |
+| Sub-spokes exist but nobody can find them | The sub-hub was written but the root hub's Map was never updated | Step 9's `not in map` warning, not `REACH` — reachability is transitive and the sub-hub links them. Add the indented children |
+| A daily journal's link to the old note now dead-ends | The heading it anchored to moved into a spoke | Step 9's `INBOUND` check reports it; repoint the link at the spoke |
 | `[[Background]]` opens the wrong note | Two spokes share a basename; Obsidian resolves by proximity | Check names against the vault in Step 2; rename with `obsidian rename` |
 | Recursion keeps finding `SPLIT` at depth 3 | The level-1 clusters were too coarse | Re-cut at Step 2 — do not add a fourth level |
 
