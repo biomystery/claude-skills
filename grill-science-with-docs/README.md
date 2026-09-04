@@ -17,7 +17,7 @@ Four phases, four gates, three artifacts.
 
 **FRAME** — restate the claim so it *could be false*; name the decision that moves on it, or stop; separate the real question from the tractable stand-in; check what is already known; pin the level (description / association / attribution / prediction); name alternative explanations; pick the cheapest observation that could kill it.
 
-**GROUND** — read the primary description in full; **enumerate the source completely before asserting absence**; fix the unit; derive the working set as a cascade; compare it against the source's own population; establish what is permanently unanswerable; grill the domain expert for what the source does not state.
+**GROUND** — read the primary description in full; **enumerate the source completely before asserting absence**; fix the unit; write down the chain of exclusions that produced your slice; **do not inherit the source's self-description** — re-derive the summary numbers on the slice you actually have; establish what is permanently unanswerable; grill the domain expert for what the source does not state.
 
 **TEST** — pre-specify the interpretation; separate outcomes that share construction with the exposure from those that do not; interrogate every denominator; run the fatal test first; inspect your own figures.
 
@@ -47,9 +47,9 @@ flowchart TD
 
     src["Read the primary\ndescription in full"]
     enum["Enumerate completely\nbefore asserting absence"]
-    unit["Fix the unit\n+ derive the working set"]
-    same{"Working set ==\nsource population?"}
-    diffr["Record the difference\nit is a finding"]
+    unit["Fix the unit\n+ write the exclusion chain"]
+    same{"Does the source's description\nstill fit YOUR slice?"}
+    diffr["Re-derive it yourself\nthe gap is a result"]
     human["Grill the domain expert"]
     el[["Evidence Ledger"]]
     g2{"⛔ GROUND GATE"}
@@ -139,7 +139,7 @@ SOURCE  plots.py
 | The field already answered it | Deliverable becomes positioning + prior art, not a new finding |
 | Grounding invalidates the claim | Return to FRAME; do not silently answer a different question |
 | Aggregated fields | Record what is **permanently unanswerable** before modelling |
-| Working set ≠ source population | Treated as a finding, not a footnote |
+| Your slice ≠ what the source describes | Re-derive the summary numbers; the gap is a result about transferability |
 | Several defensible denominators | Enumerate, choose deliberately, state which is in force |
 | Undecided result | A real answer — report it plainly with what would settle it |
 

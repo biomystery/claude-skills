@@ -98,10 +98,14 @@ top alternative explanation, and the first test. Get confirmation.
 - **What is one record?** Fix the unit. If the source nests units, say which level
   each quantity lives at — and expect different levels to carry legitimately
   different n.
-- **How was this population/sample assembled, and who was left out?** Derive your
-  working set as an explicit cascade with a count and a reason at every step.
-- **Is your working set the same as the source's?** Compare them. If they differ,
-  that is a finding, not a footnote.
+- **What did you exclude to get a usable set?** Every analysis runs on a slice —
+  filtered, joined, deduplicated, restricted to where a field is populated, cut to a
+  range where an instrument is trusted. Write that chain down, a count and a reason
+  per step. A slice arrived at silently is a slice nobody can check.
+- **Do not inherit the source's self-description.** The source characterises what
+  *it* covers; you are working on some subset of that. Re-derive the summary numbers
+  on your own slice rather than quoting the published ones. If they disagree, that
+  disagreement is a result — it tells you the source's conclusions may not transfer.
 - **What is measured directly vs derived vs aggregated?** Aggregated fields may make
   some questions permanently unanswerable — establish that now, not after modelling.
 - **Grill the human.** The domain expert knows things the source does not state.
@@ -114,15 +118,16 @@ python3 scripts/enumerate_source.py <source>   # --grep to check a variable ever
 
 > **Worked examples.** Absence was twice asserted after inspecting one container of a
 > multi-container source; both times the variable existed elsewhere. Separately, the
-> working set turned out to be a different population from the source's own — twice
-> the severity, majority drawn from records the original authors had excluded — while
-> its descriptive statistics were still being quoted from the source.
+> slice under analysis turned out to differ sharply from the set the source described
+> — double the value on the headline measure, and mostly built from records the
+> original authors had deliberately discarded — while the source's own summary
+> statistics were still being quoted as though they described it.
 
 **→ Write the Evidence Ledger.**
 
 ### ⛔ GROUND GATE
-State back: units and their mapping, the cascade, working set vs source, what exists,
-what is unanswerable. Get confirmation.
+State back: units and their mapping, the exclusion chain, how your slice differs from
+what the source describes, what exists, what is unanswerable. Get confirmation.
 
 > If grounding invalidates the claim, **return to Phase 1**. Do not silently answer a
 > different question.
