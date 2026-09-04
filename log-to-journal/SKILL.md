@@ -91,23 +91,50 @@ Within the chosen section, find where the new `HH:MM` belongs so that **newer is
 
 Prefer the `Edit` tool, anchoring on the existing bullet you're inserting above/below.
 
-### Step 4: Handle the two edge cases that break `Edit`
+### Step 4: Handle the three edge cases that break the write
 
-These bit the original session — expect them:
+These bit real sessions — expect them:
 
 **A. Linter race** — *"File has been modified since read."* The iCloud/Obsidian linter rewrites the file (e.g. bumps `updated:`) between your Read and Edit. **Fix:** Read the file again, then immediately Edit.
 
-**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script for an exact byte-level replace:
+**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script for an exact byte-level replace. See `scripts/journal_insert.py`.
 
-```bash
-python3 "$SKILL_DIR/scripts/journal_insert.py" \
-  --file "$JOURNAL" \
-  --anchor "- 13:07 🔧 [[Logseq-Import/Pages/gas heater|热水器]]" \
-  --position before \
-  --text $'- 20:00 ✅ [[...]] 新机安装完成\n\t- 安装费 \$690'
+**C. ⚠️ zsh rejects `\U` escapes — never write emoji as escape sequences.**
+
+`$'...'` in **zsh** supports `\u` (4 hex digits) but **not `\U` (8 hex digits)**. Every emoji lives above U+FFFF, so it needs 8 digits — and zsh aborts the entire command:
+
+```console
+$ printf '%s' $'\U0001F3AF eight-digit'
+zsh: character not in range          # the whole tool call fails
+$ printf '%s' $'- 16:38 🎯 literal emoji'
+- 16:38 🎯 literal emoji             # literal emoji is fine
 ```
 
-The script reads/writes UTF-8 directly and inserts relative to an anchor line (substring match), sidestepping the Edit tool's string normalization. See `scripts/journal_insert.py`.
+**Fix: paste the emoji literally.** `$'- 16:38 🎯 …'` works; `$'- 16:38 \U0001F3AF …'` does not.
+*(Verified on zsh 5.9. bash's `$'...'` does accept `\U`, so this is zsh-specific — and zsh is the macOS default shell.)*
+
+**Preferred for anything multi-line:** skip shell quoting entirely and do the insert in a Python heredoc. No `$'...'`, no escape rules, no `\$` for literal dollars, and the entry text stays readable:
+
+```bash
+python3 - <<'PY'
+import io, re
+p = "Journals/2026/2026-W36/2026-09-03.md"
+s = io.open(p, encoding='utf-8').read()
+
+entry = """- 16:38 🎯 归因分析
+\t- **关节级**:肿胀消退 → 压痛消退 **73.9%**;肿胀持续 → **23.3%**
+\t- → [[Projects/Doing/.../03 Attribution|03 Attribution]]
+"""
+
+anchor = "- 10:00 🗂️ 前一条目"
+i = s.index(anchor)                      # raises if the anchor moved — fail loud
+s = s[:i] + entry + s[i:]
+s = re.sub(r"^updated: .*$", "updated: 2026-09-03T16:38", s, count=1, flags=re.M)
+io.open(p, 'w', encoding='utf-8').write(s)
+PY
+```
+
+This bumps the frontmatter in the same pass, so Step 5 comes free.
 
 ### Step 5: Bump the frontmatter `updated:` timestamp
 
@@ -141,7 +168,7 @@ One timestamped bullet (plus optional sub-bullets) inserted into today's `Journa
 
 - An Obsidian vault using the `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md` daily-note layout
 - `date` with `%V` ISO-week support (GNU/BSD date both work)
-- `python3` for the Unicode-safe insert fallback
+- `python3` for the Unicode-safe insert fallback — **and preferred over `$'...'` for any multi-line entry, since zsh cannot parse the `\U` escapes that emoji require**
 
 ## Skill Structure
 
