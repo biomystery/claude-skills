@@ -26,7 +26,7 @@ flowchart TD
     ok{Edit succeeded?}
     why{Why did it fail?}
     reread["Re-read file\n(linter race)"]
-    pyscript["scripts/journal_insert.py\n(Unicode-safe insert)"]
+    pyscript["scripts/journal_insert.py --stdin\n(Unicode-safe, no shell quoting)"]
     stamp["Bump frontmatter\nupdated:"]
     done(["Done\nreport time + section"])
 
@@ -81,7 +81,8 @@ A single timestamped bullet inserted into today's daily note. **Sample** (illust
 | Situation | Handling |
 |---|---|
 | File rewritten by linter mid-edit | Re-read, then edit |
-| Line has `→ ⏳ ❌ —` / CJK / NBSP and Edit won't match | `scripts/journal_insert.py` byte-level insert |
+| Line has `→ ⏳ ❌ —` / CJK / NBSP and Edit won't match | `scripts/journal_insert.py --stdin` (no shell quoting) |
+| Entry contains emoji and you reached for `$'...'` | **Don't** — zsh can't parse the `\U` escapes emoji need. Use `--stdin` or a Python heredoc |
 | Entry newer than all existing | Inserted as first bullet under the section |
 | No section named by user | Defaults to `🏠 Life` |
 | Daily file missing | Stop and ask (Calendar plugin usually creates it) |
