@@ -18,7 +18,7 @@ Usage:
 --grep searches the flat column index case-insensitively, so you can check for a
 variable across the entire source in one pass:
 
-    enumerate_source.py cohort.xlsx --grep 'dose|drug|treat|steroid'
+    enumerate_source.py dataset.xlsx --grep 'dose|exposure|treat|covariate'
 """
 import argparse
 import csv

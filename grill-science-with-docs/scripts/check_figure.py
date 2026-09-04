@@ -34,7 +34,7 @@ SOURCE_RULES = [
     (r'bins\s*=\s*np\.arange\([^)]*\)', 'MED',
      'explicit bins silently DROP out-of-range values — clip to an overflow bucket '
      'and report the true max'),
-    (r"""["'][^"']*\b(every|all|always|never|none|no)\b\s+\w*(position|patient|case|sample|joint|group)""", 'HIGH',
+    (r"""["'][^"']*\b(every|all|always|never|none|no)\b\s+\w*(case|sample|group|record|unit|subject|stratum|condition|run|trial)""", 'HIGH',
      'absolute claim in a caption — verify it holds in every stratum, or soften it'),
     (r'\\U[0-9A-Fa-f]{8}', 'LOW',
      'literal \\U escape — some shells cannot parse it; paste the character instead'),

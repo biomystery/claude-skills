@@ -1,316 +1,231 @@
 ---
 name: grill-science-with-docs
-description: A three-phase interrogation for scientific analysis you did not originate — Phase 0 grills the QUESTION (what decision hangs on it, what the proxy question is hiding, has the field already answered it, what would falsify it, what is the cheapest test that could kill it), Phase 1 grills the DATA and the domain expert (source methods, complete structure enumeration, unit of analysis, denominators), each behind a hard alignment gate, then Phase 2 runs a pre-specified analysis with rendered-and-inspected figures and an honest statement of what the data cannot settle. Use when asked to test a claim, reproduce a finding, extend a colleague's preliminary result, or answer a question with a dataset you did not create.
+description: A relentless interview that sharpens a scientific claim and closes the loop on it, producing durable records as it goes — a Claim Record (what is asserted, what decision it serves, what would falsify it, what is already known), an Evidence Ledger (what the source actually supports vs what you assumed, with every correction logged), and a Findings Record (what was settled, what was ruled out, what remains open). Four phases — FRAME, GROUND, TEST, CLOSE — each behind a gate that requires human confirmation. Use when forming or testing a hypothesis, analysing evidence you did not generate, extending someone's preliminary result, or deciding whether a line of enquiry is worth continuing.
 user-invocable: true
 disable-model-invocation: true
 ---
 
 # Grill Science With Docs
 
-Most wrong analyses are not statistical errors. They are **alignment errors**, and they come in two layers:
+An interview, not a checklist. You are trying to make a claim **fail cheaply** before
+it fails expensively.
 
-| Layer | Failure | Cost |
+Most bad scientific work is not bad statistics. It is well-executed work on a claim
+nobody stated precisely, grounded in evidence nobody checked, that ends without
+anyone recording what is now known.
+
+| Layer | Failure | Symptom |
 |---|---|---|
-| **Question** | You answered a *proxy* question extremely well | Months of rigorous work on the wrong thing |
-| **Data** | You analysed a different cohort / unit / denominator than the question meant | Revisions that move the headline after it has been sent |
+| **Claim** | Answered a proxy question rigorously | Correct answer, wrong question |
+| **Ground** | Assumed what the evidence contains | Result moves every time someone looks closer |
+| **Test** | Interpretation chosen after seeing results | Story, not finding |
+| **Close** | Nothing durable recorded | The next person redoes it |
 
-The question layer is the expensive one and gets grilled least. This skill forbids
-touching data until the question is settled, and forbids analysis until the data
-picture is settled.
+Four phases, four artifacts, gates between them.
 
 ## When to Use
 
-- Someone hands you a dataset and a question ("does X hold?", "can you check this in that data?")
-- You are testing a claim from a paper, or extending a colleague's preliminary result
-- The data has a **source document** — a paper, protocol, or data dictionary — that you have not read in full
+- Forming a hypothesis, or being handed one to test
+- Analysing evidence you did not generate
+- Extending or checking someone else's preliminary result
+- Deciding whether to continue or abandon a line of enquiry
 
-**Do not use** for data you generated yourself, or for exploratory plotting with no claim at stake.
+**Not for**: routine exploration with no claim at stake, or work where you generated
+the evidence and already know its provenance cold.
 
----
+## Artifacts
 
-# PHASE 0 · GRILL THE QUESTION
+Write these as you go, not afterwards. They are the deliverable as much as the result.
 
-**No data access in this phase.** You are deciding whether this question is worth
-answering, and what "it" even is.
-
-### Step A: Name the decision
-
-> *"What decision changes depending on the answer, and by when?"*
-
-If nothing changes, say so and stop — that is a legitimate and valuable outcome. If
-something does, it sets the deadline and the required precision. A question tied to
-a design decision that is **open now** deserves a fast, rough answer; one tied to a
-paper deserves a slow, exact one.
-
-### Step B: Find the question behind the question
-
-The stated question is often a **proxy** — tractable, adjacent, and not the thing
-anyone cares about. Interrogate it:
-
-- *"If I answer exactly this, what will you do with it?"*
-- *"Is there a question you would rather have answered, if it were possible?"*
-- *"What is the number you would actually quote to someone?"*
-
-Typical proxy/real pairs:
-
-| Proxy (stated) | Real (meant) |
-|---|---|
-| "Is this metric novel?" | "Can we defend using it?" |
-| "Does X predict Y?" | "How much of Y is *attributable* to X?" |
-| "Is this group different?" | "Should we treat these groups differently?" |
-| "Can you validate this?" | "Should we keep going or stop?" |
-
-Answering the proxy rigorously while the real question goes untouched is the most
-expensive failure in this whole skill.
-
-### Step C: Check whether the field already answered it
-
-Search before analysing. Two outcomes, both valuable:
-
-- **It is answered** — your deliverable changes from *finding* to *positioning*: what
-  the literature already supports, and what genuinely remains open. Say so early;
-  it protects whoever was about to present it as new.
-- **It is open** — you now have the prior art to benchmark against, and know what a
-  new result has to beat.
-
-Record the strongest existing result and its n. Any new claim must be argued against
-that, not against nothing.
-
-### Step D: Pin the level the question lives at
-
-The same topic supports several different scientific questions, and they need
-different designs, different units, and different data:
-
-| Level | Asks | Unit |
+| Artifact | Holds | Analogue |
 |---|---|---|
-| **Description** | how common, how distributed | whichever is natural |
-| **Association** | do these move together | usually subject |
-| **Attribution** | how much of the effect is *because of* the cause | usually the sub-unit where the mechanism acts |
-| **Prediction / classification** | can we sort subjects in advance | subject, and it must be **reproducible** |
-
-**Attribution and prediction questions usually live at different levels.** Picking the
-wrong one produces a technically correct answer to a question nobody asked. Where a
-mechanism acts locally, the sub-unit is where the evidence is — subject-level averages
-dilute it away.
-
-### Step E: List candidate answers and their consequences
-
-Write the plausible answers **now**, and what each implies:
-
-```
-If STRONG   -> we would ...
-If WEAK     -> we would ...
-If NULL     -> we would ...
-```
-
-If two branches lead to the same action, the question is not decision-relevant —
-sharpen it or drop it.
-
-### Step F: Name the strongest alternative explanation
-
-Before any analysis: *what else could produce this result?* Confounding, selection,
-measurement artifact, shared arithmetic between exposure and outcome. Write them down
-so the analysis is designed to address them rather than discovering them at review.
-
-### Step G: Choose the cheapest test that could kill it
-
-Order the work so the **most likely fatal** check runs **first**, not last. If the
-metric is not reproducible, its outcome association does not matter — so test
-reliability before association. Killing an idea in an afternoon is a good day.
-
-### ⛔ QUESTION GATE
-
-State back, in a few lines: **the decision, the real question, the level, the prior
-art, the candidate answers, the top alternative explanation, and the first test.**
-Get confirmation.
-
-Only now may you touch the data.
+| **Claim Record** | the claim, the decision it serves, prior art, falsifiers | ADR |
+| **Evidence Ledger** | what the source supports, what it cannot, every correction | lab notebook |
+| **Findings Record** | settled / ruled out / still open, and why | results + limitations |
 
 ---
 
-# PHASE 1 · GRILL THE DATA
+# PHASE 1 · FRAME
 
-**No analysis in this phase. No statistics, no plots, no `groupby`.** You are building a picture, not a result.
+**No evidence access yet.** You are deciding what is being claimed and whether it is
+worth the work.
 
-Everything here serves the question fixed in Phase 0. If a Phase 1 finding invalidates that question, **go back** — do not quietly answer a different one.
+### Interrogate the claim
 
-### Step 1: Read the source document — the methods, not the abstract
+- **State it as something that could be false.** If no observation would contradict
+  it, it is not yet a claim. Rewrite until it can lose.
+- **What decision moves on the answer, and by when?** If nothing moves, say so and
+  stop — a legitimate outcome. If something does, it sets the required precision and
+  the deadline.
+- **Is this the real question or a tractable stand-in?** Ask directly: *"if I answer
+  exactly this, what will you do with it?"* and *"what number would you actually
+  quote to someone?"*
+- **What is already known?** Search before working. If the field has answered it, the
+  deliverable becomes *positioning* — what is supported, what genuinely remains open —
+  which is often more valuable and always cheaper.
+- **At what level does the claim live?** Description, association, attribution, or
+  prediction are four different claims needing different designs and different units.
+- **What else could produce the same result?** Confounding, selection, measurement
+  artifact, shared construction between cause and outcome. Name them now so the
+  design can address them.
+- **What is the cheapest observation that could kill it?** Do that first.
 
-Fetch the full text. Abstracts systematically understate what was collected.
+> **Worked example — the proxy trap.** A request arrived as *"is this metric novel,
+> and does it predict outcome?"* Considerable rigorous work went into exactly that.
+> The question actually being asked was *"how much of the effect is attributable to
+> the intervention?"* — a different claim, at a different unit, with far stronger
+> evidence available. The proxy was answered well and was nearly worthless.
 
-```bash
-# papers: get the manuscript XML/full text, not the landing page
-curl -sL -o paper.xml "<publisher full-text or PMC URL>"
-```
+**→ Write the Claim Record.**
 
-Extract and read, in this order: **Methods → Table 1 → the selection/CONSORT cascade → Limitations**. Record:
-
-| Question | Why it bites |
-|---|---|
-| What was **actually measured**, at what granularity? | An abstract may imply a subset while methods describe the full instrument |
-| What does the **published file** expose vs what was collected? | Files often aggregate; the raw granularity may be unrecoverable |
-| **Who was excluded, and why?** | Your analysable set is frequently *not* the paper's cohort |
-| What are the authors' **own stated limitations**? | Free list of the objections you will otherwise discover late |
-
-### Step 2: Enumerate the structure exhaustively — never assert absence
-
-> **"I did not find it" is not "it does not exist."** Assert absence only after enumerating every container.
-
-```bash
-python3 scripts/enumerate_source.py <file.xlsx|file.csv|db.sqlite>
-```
-
-Read the **whole** inventory before concluding anything is missing. Multi-sheet workbooks, side tables, and companion files routinely hold the variable you are about to declare absent.
-
-### Step 3: Fix the unit of analysis — and never mix
-
-Write down explicitly: **what is one row?** A patient? An observation? A sub-unit nested in a patient?
-
-Different units answer different questions and legitimately carry **different n**. Conflating them is the single most common source of confusion in the write-up. Record the mapping, e.g.:
-
-```
-70 measured sub-units → 26 analysis units  (22 resolved individually + 2 + 2 aggregated)
-Counts use all 70. The paired statistic uses the 26.
-```
-
-Both numbers are correct. Say which is which, every time.
-
-### Step 4: Derive the analysis set as a cascade
-
-Write the attrition explicitly, with an n at every step and the **reason** for each drop:
-
-```
-N   all records
- ↓  complete at timepoint 1
- ↓  complete at timepoint 2
- ↓  eligible for the statistic (state the eligibility rule)
-n   ANALYSIS SET
-```
-
-Then **compare your analysis set against the source cohort** on the key clinical/descriptive variables. If they differ, that is a finding, not a footnote — quoting the paper's Table 1 as if it described your set is a common and serious error.
-
-### Step 5: List every candidate denominator
-
-For the question asked, enumerate the defensible denominators and state what each one means. Choose deliberately.
-
-Ask of each: *who is in this denominator who **cannot** exhibit the outcome?* Anyone who cannot should usually be excluded — including them silently dilutes the rate.
-
-### Step 6: Grill the human
-
-The data cannot answer these. The domain expert can, and will correct you.
-
-- "Is this the cohort you mean?"
-- "Which denominator answers *your* question?"
-- "Does your own dataset collect X separately?" *(often yes, which changes the plan entirely)*
-- "Is decision Y still open?" *(determines whether this is urgent or academic)*
-- "What would change your mind?"
-
-Expect to be corrected on facts that are not in the file. Treat every correction as a Phase-1 defect, not a nuisance.
-
-### ⛔ DATA GATE
-
-Write the picture as a short document — **units, cascade, analysis set vs source cohort, chosen denominator, what exists, what does not** — and get **explicit confirmation** before continuing.
-
-Do not proceed on assumed agreement. Together with the Question Gate, this is the entire point of the skill.
+### ⛔ FRAME GATE
+State back: the falsifiable claim, the decision it serves, the level, prior art, the
+top alternative explanation, and the first test. Get confirmation.
 
 ---
 
-# PHASE 2 · WORK
+# PHASE 2 · GROUND
 
-### Step 7: Pre-specify the interpretation grid — in writing, before looking
+**No analysis yet.** Establish what the evidence can and cannot support.
 
-State the outcomes, the model, and **what each possible result would mean**, before running anything.
+### Interrogate the source
 
-Where the exposure and the outcome share arithmetic, split outcomes into families and commit to reading the contrast:
-
-| Outcome family | |
-|---|---|
-| **Contaminated** — shares components with the exposure | a difference here alone ⇒ artifact |
-| **Clean** — independent of the exposure's construction | a difference here ⇒ candidate real effect |
-
-Landing on a cell of a **pre-committed** grid is a finding. Constructing the grid afterwards is a story.
-
-### Step 8: Analyse, adjusting for the obvious confounders
-
-Adjust for baseline value and anything the grill flagged. Report effect sizes with n; do not lead with p-values at small n.
-
-### Step 9: Render every figure and LOOK at it
-
-Never ship a figure you have not viewed. Plotting libraries fail **silently**.
+- **Read the primary description in full**, not its summary. Summaries systematically
+  understate or overstate what was captured.
+- **Enumerate the source completely before asserting absence.**
+  *"I did not find it" is not "it does not exist."* Absence is a claim about the
+  whole source; you may only make it after inventorying the whole source.
+- **What is one record?** Fix the unit. If the source nests units, say which level
+  each quantity lives at — and expect different levels to carry legitimately
+  different n.
+- **How was this population/sample assembled, and who was left out?** Derive your
+  working set as an explicit cascade with a count and a reason at every step.
+- **Is your working set the same as the source's?** Compare them. If they differ,
+  that is a finding, not a footnote.
+- **What is measured directly vs derived vs aggregated?** Aggregated fields may make
+  some questions permanently unanswerable — establish that now, not after modelling.
+- **Grill the human.** The domain expert knows things the source does not state.
+  Ask what exists elsewhere, which definition is in force, what is still open.
+  Treat every correction as a Phase-2 defect, not a nuisance.
 
 ```bash
-python3 scripts/check_figure.py <figure.png> --source <plotting_script.py>
+python3 scripts/enumerate_source.py <source>   # --grep to check a variable everywhere
 ```
 
-Real defects caught this way, each of which would have shipped:
+> **Worked examples.** Absence was twice asserted after inspecting one container of a
+> multi-container source; both times the variable existed elsewhere. Separately, the
+> working set turned out to be a different population from the source's own — twice
+> the severity, majority drawn from records the original authors had excluded — while
+> its descriptive statistics were still being quoted from the source.
 
-- **Clipped axes** — hardcoded limits that no longer bracket the data
-- **Silently dropped data** — explicit histogram bins discard out-of-range values with no warning
-- **Stale annotations** — a hardcoded `n.s.` label sitting on a `p = 0.006` result
-- **Overclaiming captions** — "at every position" when it held at 9 of 10
+**→ Write the Evidence Ledger.**
 
-Verify the caption against the numbers, not against your intent.
+### ⛔ GROUND GATE
+State back: units and their mapping, the cascade, working set vs source, what exists,
+what is unanswerable. Get confirmation.
 
-### Step 10: Put corrections IN the artifact
-
-When a number changes, record the chain — old value, new value, and *why* — in the deliverable itself. A headline that moved four times is credible **if the moves are visible** and alarming if discovered later.
-
-Do not annotate superseded figures; **regenerate them** and keep the changelog in prose.
-
-### Step 11: Separate what the data can and cannot settle
-
-State the honest null plainly. "These two groups are not distinguishable in this dataset" is a legitimate, useful answer.
-
-Guard against reading noise as signal: with `k` comparisons, one nominal `p < 0.05` is what chance predicts. Report the Bonferroni threshold next to it.
-
-Also separate **relative** from **absolute**: a 30× relative risk can coexist with most events occurring in the low-risk group when that group is far larger. State both.
+> If grounding invalidates the claim, **return to Phase 1**. Do not silently answer a
+> different question.
 
 ---
 
-## Reproducibility
+# PHASE 3 · TEST
 
-- Keep the analysis core **stdlib-only** where possible, so it runs anywhere without an environment
-- **Commit the data with the code** when the licence allows; note the source URL and licence
-- **One command per analysis** — a named entry point per question
-- Put heavy virtualenvs **outside** any synced folder (iCloud/Dropbox) — they are large and sync badly
+### Pre-specify, then execute
 
-## Reporting Back
+- **Write the interpretation before looking.** For each plausible result, state what
+  it would mean and what would follow. Landing on a pre-committed branch is a
+  finding; constructing the branches afterwards is a story.
+- **Separate outcomes that share construction with the exposure** from those that do
+  not. A difference confined to the shared-construction family is an artifact — and
+  detecting that is itself a result.
+- **Interrogate every denominator.** For each rate, ask who is in it that *cannot*
+  exhibit the outcome. They usually do not belong.
+- **Run the fatal test first.** Reliability before association; a measure that cannot
+  reproduce cannot predict.
+- **Inspect your own output.** Rendering and visualisation fail silently. Look at
+  every figure; verify every caption against the numbers rather than against intent.
 
-When the result touches a colleague's own work:
+```bash
+python3 scripts/check_figure.py <figure> --source <plotting script>
+```
 
-1. **Lead with what strengthens their position**, not with your correction
-2. **Disclose your own errors first**, before presenting conclusions
-3. **State the limitation that most threatens your result**, before they find it
-4. Frame open questions as *"only you can answer this"* where that is true — it usually is
+> **Worked examples.** A headline moved across four denominators, each revision
+> triggered by finally asking who was in it. Four figure defects reached a near-final
+> deliverable: axis limits that no longer bracketed the data, binning that silently
+> discarded out-of-range values, a hardcoded "n.s." sitting on a significant result,
+> and a caption claiming "every" where it held in nine of ten strata.
+
+**→ Update the Evidence Ledger with every correction, as you make them.**
+
+---
+
+# PHASE 4 · CLOSE THE LOOP
+
+The phase most often skipped. Without it the work is not reusable and will be redone.
+
+### Settle the ledger
+
+- **Answer the Phase-1 claim explicitly** — supported, contradicted, or undecided.
+  *"Not distinguishable with this evidence"* is a real answer; report it plainly.
+- **Separate settled from open.** What is now known, what was ruled out (and by what),
+  what remains open and what it would take to close.
+- **Put corrections in the artifact.** A number that moved is credible when the moves
+  are visible and alarming when discovered later. Regenerate superseded outputs; keep
+  the history in prose.
+- **Distinguish relative from absolute.** A large relative effect can coexist with
+  most events arising in the low-risk group when that group is far bigger. State both.
+- **Guard against noise.** With *k* comparisons, one nominal *p* < 0.05 is what chance
+  predicts. Report the correction threshold beside it.
+- **Name what would change the conclusion**, so the next person knows what to collect.
+- **Make it reproducible.** One command per question; dependency-light core; evidence
+  stored with the code where licensing allows.
+
+### Report back
+
+When the result touches someone else's work:
+
+1. Lead with what **strengthens** their position
+2. Disclose **your own errors first**
+3. State the limitation that most threatens **your** result before they find it
+4. Frame as *"only you can answer this"* where true — it usually is
+
+**→ Write the Findings Record.**
+
+### ⛔ CLOSE GATE
+The loop is closed when someone who was not present can read the three records and
+know what was asked, what the evidence could bear, what was found, and what is still
+open.
+
+---
 
 ## Example Invocations
 
 ```
 /grill-science-with-docs
 ```
-→ Runs Phase 1 on the dataset in context, stops at the alignment gate
+→ Grills whatever claim is in play, starting at Phase 1
 
 ```
-/grill-science-with-docs data/cohort.xlsx --paper https://doi.org/10.xxxx/yyyy
+/grill-science-with-docs --claim "X drives Y" --evidence data/source.xlsx
 ```
-→ Reads the paper first, enumerates the workbook, drafts the picture for confirmation
+→ Frames the claim, then grounds it in that source
+
+```
+/grill-science-with-docs --close
+```
+→ Jump to Phase 4 on work already done, to produce the records retrospectively
 
 ## Output
 
-- A written **question frame** (decision, real question, level, prior art, candidate answers, alternatives, first test) confirmed before any data access
-- A written **data picture** (units, cascade, analysis set vs source cohort, denominators) confirmed before analysis
-- A **pre-specified analysis plan** with its interpretation grid
-- Reproducible analysis code with one entry point per question
-- Figures that have been rendered and inspected
-- A **correction log** in the deliverable
-- An explicit statement of what the data cannot settle
+Three durable records — **Claim**, **Evidence Ledger**, **Findings** — plus
+reproducible analysis and figures that have been inspected.
 
 ## Requirements
 
-- `python3` (the enumerator is stdlib-only)
-- A headless browser or image viewer for figure inspection
-- Network access to fetch the source document
-- **A human available at both gates** — this skill does not run unattended
+- `python3` — `enumerate_source.py` is stdlib-only
+- `Pillow` *optional* — enables image checks in `check_figure.py`
+- **A human at every gate** — this skill does not run unattended
 
 ## Skill Structure
 
@@ -319,6 +234,6 @@ grill-science-with-docs/
 ├── SKILL.md
 ├── README.md
 └── scripts/
-    ├── enumerate_source.py    # Phase 1 — complete structure inventory
-    └── check_figure.py        # Phase 2 — render, measure, lint captions
+    ├── enumerate_source.py    # GROUND — inventory before asserting absence
+    └── check_figure.py        # TEST — inspect your own output
 ```
