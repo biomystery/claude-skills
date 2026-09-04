@@ -25,7 +25,7 @@ Appends one concise, timestamped entry to the user's Obsidian **daily journal**,
 | Link related notes with `[[wikilinks]]` | Keeps the daily note woven into the vault |
 | Bump frontmatter `updated:` after editing | Keeps Obsidian metadata honest |
 | Re-read the file immediately before editing | The iCloud/Obsidian linter rewrites files between read and edit |
-| **If today's log already has the entry, enrich it in place** — append sub-bullets via `journal_insert.py --anchor <existing line> --position after`; don't add a duplicate timestamped bullet | Following up on earlier work should extend that entry, not create a redundant one |
+| **If today's log already has the entry, enrich it in place** — append sub-bullets under it (`journal_insert.py --anchor <existing line> --position after --stdin`); don't add a duplicate timestamped bullet | Following up on earlier work should extend that entry, not create a redundant one |
 
 ## Instructions
 
@@ -97,7 +97,18 @@ These bit real sessions — expect them:
 
 **A. Linter race** — *"File has been modified since read."* The iCloud/Obsidian linter rewrites the file (e.g. bumps `updated:`) between your Read and Edit. **Fix:** Read the file again, then immediately Edit.
 
-**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script for an exact byte-level replace. See `scripts/journal_insert.py`.
+**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script with `--stdin`, which reads the block from standard input so no shell quoting is involved:
+
+```bash
+python3 "$SKILL_DIR/scripts/journal_insert.py" \
+  --file "$JOURNAL" --anchor "- 13:07 🔧 热水器" --position before \
+  --stdin --update-frontmatter "$(date '+%Y-%m-%dT%H:%M')" <<'TXT'
+- 20:00 ✅ 新机安装完成
+	- 安装费 $690
+TXT
+```
+
+The anchor is matched as a substring; if it has moved the script **exits non-zero without writing** rather than appending somewhere wrong. `--update-frontmatter` bumps `updated:` in the same pass, so Step 5 comes free. Never pass emoji or tabs through `--text` — see C.
 
 **C. ⚠️ zsh rejects `\U` escapes — never write emoji as escape sequences.**
 
