@@ -1,15 +1,22 @@
 ---
 name: grill-science-with-docs
-description: A two-phase interrogation for analysing someone else's dataset — Phase 1 grills the data AND the domain expert until the picture is provably aligned (source paper methods, complete structure enumeration, unit of analysis, candidate denominators, what actually exists), then a hard gate, then Phase 2 does pre-specified analysis with rendered-and-inspected figures and an honest statement of what the data cannot settle. Use when asked to test a claim, reproduce a finding, or answer a colleague's question with a dataset you did not create.
+description: A three-phase interrogation for scientific analysis you did not originate — Phase 0 grills the QUESTION (what decision hangs on it, what the proxy question is hiding, has the field already answered it, what would falsify it, what is the cheapest test that could kill it), Phase 1 grills the DATA and the domain expert (source methods, complete structure enumeration, unit of analysis, denominators), each behind a hard alignment gate, then Phase 2 runs a pre-specified analysis with rendered-and-inspected figures and an honest statement of what the data cannot settle. Use when asked to test a claim, reproduce a finding, extend a colleague's preliminary result, or answer a question with a dataset you did not create.
 user-invocable: true
 disable-model-invocation: true
 ---
 
 # Grill Science With Docs
 
-Most wrong analyses are not statistical errors. They are **alignment errors** — you analysed a different cohort, unit, or denominator than the one the question was about, and found out four revisions later.
+Most wrong analyses are not statistical errors. They are **alignment errors**, and they come in two layers:
 
-This skill forbids analysis until the picture is written down and confirmed.
+| Layer | Failure | Cost |
+|---|---|---|
+| **Question** | You answered a *proxy* question extremely well | Months of rigorous work on the wrong thing |
+| **Data** | You analysed a different cohort / unit / denominator than the question meant | Revisions that move the headline after it has been sent |
+
+The question layer is the expensive one and gets grilled least. This skill forbids
+touching data until the question is settled, and forbids analysis until the data
+picture is settled.
 
 ## When to Use
 
@@ -21,9 +28,111 @@ This skill forbids analysis until the picture is written down and confirmed.
 
 ---
 
-# PHASE 1 · GRILL
+# PHASE 0 · GRILL THE QUESTION
+
+**No data access in this phase.** You are deciding whether this question is worth
+answering, and what "it" even is.
+
+### Step A: Name the decision
+
+> *"What decision changes depending on the answer, and by when?"*
+
+If nothing changes, say so and stop — that is a legitimate and valuable outcome. If
+something does, it sets the deadline and the required precision. A question tied to
+a design decision that is **open now** deserves a fast, rough answer; one tied to a
+paper deserves a slow, exact one.
+
+### Step B: Find the question behind the question
+
+The stated question is often a **proxy** — tractable, adjacent, and not the thing
+anyone cares about. Interrogate it:
+
+- *"If I answer exactly this, what will you do with it?"*
+- *"Is there a question you would rather have answered, if it were possible?"*
+- *"What is the number you would actually quote to someone?"*
+
+Typical proxy/real pairs:
+
+| Proxy (stated) | Real (meant) |
+|---|---|
+| "Is this metric novel?" | "Can we defend using it?" |
+| "Does X predict Y?" | "How much of Y is *attributable* to X?" |
+| "Is this group different?" | "Should we treat these groups differently?" |
+| "Can you validate this?" | "Should we keep going or stop?" |
+
+Answering the proxy rigorously while the real question goes untouched is the most
+expensive failure in this whole skill.
+
+### Step C: Check whether the field already answered it
+
+Search before analysing. Two outcomes, both valuable:
+
+- **It is answered** — your deliverable changes from *finding* to *positioning*: what
+  the literature already supports, and what genuinely remains open. Say so early;
+  it protects whoever was about to present it as new.
+- **It is open** — you now have the prior art to benchmark against, and know what a
+  new result has to beat.
+
+Record the strongest existing result and its n. Any new claim must be argued against
+that, not against nothing.
+
+### Step D: Pin the level the question lives at
+
+The same topic supports several different scientific questions, and they need
+different designs, different units, and different data:
+
+| Level | Asks | Unit |
+|---|---|---|
+| **Description** | how common, how distributed | whichever is natural |
+| **Association** | do these move together | usually subject |
+| **Attribution** | how much of the effect is *because of* the cause | usually the sub-unit where the mechanism acts |
+| **Prediction / classification** | can we sort subjects in advance | subject, and it must be **reproducible** |
+
+**Attribution and prediction questions usually live at different levels.** Picking the
+wrong one produces a technically correct answer to a question nobody asked. Where a
+mechanism acts locally, the sub-unit is where the evidence is — subject-level averages
+dilute it away.
+
+### Step E: List candidate answers and their consequences
+
+Write the plausible answers **now**, and what each implies:
+
+```
+If STRONG   -> we would ...
+If WEAK     -> we would ...
+If NULL     -> we would ...
+```
+
+If two branches lead to the same action, the question is not decision-relevant —
+sharpen it or drop it.
+
+### Step F: Name the strongest alternative explanation
+
+Before any analysis: *what else could produce this result?* Confounding, selection,
+measurement artifact, shared arithmetic between exposure and outcome. Write them down
+so the analysis is designed to address them rather than discovering them at review.
+
+### Step G: Choose the cheapest test that could kill it
+
+Order the work so the **most likely fatal** check runs **first**, not last. If the
+metric is not reproducible, its outcome association does not matter — so test
+reliability before association. Killing an idea in an afternoon is a good day.
+
+### ⛔ QUESTION GATE
+
+State back, in a few lines: **the decision, the real question, the level, the prior
+art, the candidate answers, the top alternative explanation, and the first test.**
+Get confirmation.
+
+Only now may you touch the data.
+
+---
+
+# PHASE 1 · GRILL THE DATA
 
 **No analysis in this phase. No statistics, no plots, no `groupby`.** You are building a picture, not a result.
+
+Everything here serves the question fixed in Phase 0. If a Phase 1 finding invalidates that question, **go back** — do not quietly answer a different one.
 
 ### Step 1: Read the source document — the methods, not the abstract
 
@@ -98,11 +207,11 @@ The data cannot answer these. The domain expert can, and will correct you.
 
 Expect to be corrected on facts that are not in the file. Treat every correction as a Phase-1 defect, not a nuisance.
 
-### ⛔ ALIGNMENT GATE
+### ⛔ DATA GATE
 
 Write the picture as a short document — **units, cascade, analysis set vs source cohort, chosen denominator, what exists, what does not** — and get **explicit confirmation** before continuing.
 
-Do not proceed on assumed agreement. This gate is the entire point of the skill.
+Do not proceed on assumed agreement. Together with the Question Gate, this is the entire point of the skill.
 
 ---
 
@@ -188,6 +297,7 @@ When the result touches a colleague's own work:
 
 ## Output
 
+- A written **question frame** (decision, real question, level, prior art, candidate answers, alternatives, first test) confirmed before any data access
 - A written **data picture** (units, cascade, analysis set vs source cohort, denominators) confirmed before analysis
 - A **pre-specified analysis plan** with its interpretation grid
 - Reproducible analysis code with one entry point per question
@@ -200,7 +310,7 @@ When the result touches a colleague's own work:
 - `python3` (the enumerator is stdlib-only)
 - A headless browser or image viewer for figure inspection
 - Network access to fetch the source document
-- **A human available at the alignment gate** — this skill does not run unattended
+- **A human available at both gates** — this skill does not run unattended
 
 ## Skill Structure
 

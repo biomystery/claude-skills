@@ -1,44 +1,73 @@
 # grill-science-with-docs
 
-A two-phase interrogation for analysing a dataset you did not create. Phase 1 grills the data **and** the domain expert until the picture is provably aligned. A hard gate. Then Phase 2 does the analysis.
+A three-phase interrogation for scientific analysis you did not originate. Phase 0 grills the **question**, Phase 1 grills the **data** and the domain expert, each behind a hard gate. Only then does Phase 2 analyse.
 
-Most wrong analyses are not statistical errors. They are **alignment errors** — you analysed a different cohort, unit, or denominator than the question was about, and found out four revisions later.
+Most wrong analyses are not statistical errors. They are **alignment errors**, in two layers:
+
+| Layer | Failure | Cost |
+|---|---|---|
+| **Question** | You answered a *proxy* question extremely well | Rigorous work on the wrong thing |
+| **Data** | You analysed a different cohort / unit / denominator than the question meant | Revisions that move the headline after it has shipped |
+
+The question layer is the expensive one and gets grilled least.
 
 ## What It Does
 
+**Phase 0 — the question**
+- Names the **decision** that hangs on the answer, or stops if there isn't one
+- Separates the **stated (proxy) question** from the one actually being asked
+- Checks whether the **field already answered it** — turning a "finding" into "positioning" before someone presents it as new
+- Pins the **level** — description / association / attribution / prediction — which determines the unit and the design
+- Names the **strongest alternative explanation** up front, and runs the **cheapest fatal test first**
+
+**Phase 1 — the data**
 - Reads the **source document's methods**, not its abstract — abstracts systematically understate what was collected
 - **Enumerates every container** in the source, so "there is no X" is never claimed from a partial scan
 - Pins the **unit of analysis** and the **derivation cascade**, with an n and a reason at every step
 - Compares your analysis set against the **source cohort** — they are often not the same population
 - Forces you to **grill the human** for facts the file cannot state
 - **Blocks analysis** until the picture is written down and confirmed
-- Then: pre-specified interpretation grid → analysis → **rendered and inspected** figures → correction log → an explicit statement of what the data cannot settle
+
+**Phase 2 — the work**
+- Pre-specified interpretation grid → analysis → **rendered and inspected** figures → correction log → an explicit statement of what the data cannot settle
 
 ## Workflow
 
 ```mermaid
 flowchart TD
     start(["/grill-science-with-docs\n[data] [--paper URL]"])
+    dec{"What decision\nhangs on this?"}
+    stop(["Say so and stop\na legitimate outcome"])
+    real["Proxy question\nvs real question"]
+    lit["Has the field\nalready answered it?"]
+    lvl["Pin the level\nassociation? attribution?"]
+    alt["Name alternative\nexplanations"]
+    kill["Order tests:\ncheapest fatal one first"]
+    qgate{"⛔ QUESTION GATE\nframe confirmed?"}
+
     paper["Read source METHODS\nnot the abstract"]
     enum["enumerate_source.py\nevery sheet / table / column"]
-    unit["Pin unit of analysis\nwhat is one row?"]
-    casc["Derive analysis set\nas an attrition cascade"]
+    unit["Unit of analysis\n+ attrition cascade"]
     cmp{"Analysis set ==\nsource cohort?"}
     diff["Record the difference\nit is a finding"]
     human["Grill the domain expert\nfacts not in the file"]
-    gate{"⛔ ALIGNMENT GATE\npicture confirmed?"}
-    grid["Pre-specify interpretation grid\ncontaminated vs clean outcomes"]
-    run["Analyse + adjust\nfor baseline"]
+    dgate{"⛔ DATA GATE\npicture confirmed?"}
+
+    grid["Pre-specify\ninterpretation grid"]
+    run["Analyse + adjust"]
     fig["check_figure.py\nthen LOOK at it"]
-    log["Correction log\ninto the artifact"]
     done(["Done\nresult + honest null"])
 
-    start --> paper --> enum --> unit --> casc --> cmp
+    start --> dec
+    dec -->|Nothing| stop
+    dec -->|Something| real --> lit --> lvl --> alt --> kill --> qgate
+    qgate -->|No| real
+    qgate -->|Yes| paper --> enum --> unit --> cmp
     cmp -->|No| diff --> human
     cmp -->|Yes| human
-    human --> gate
-    gate -->|No| enum
-    gate -->|Yes| grid --> run --> fig --> log --> done
+    human --> dgate
+    dgate -->|No| enum
+    dgate -->|Yes| grid --> run --> fig --> done
 ```
 
 ## Install
@@ -101,7 +130,7 @@ SOURCE  plots.py
 - `python3` — `enumerate_source.py` is stdlib-only (reads `.xlsx` via the OOXML zip, no `openpyxl`)
 - `Pillow` *optional* — enables the image half of `check_figure.py`; source linting works without it
 - Network access to fetch the source document
-- **A human at the alignment gate** — this skill does not run unattended
+- **A human at both gates** — this skill does not run unattended
 
 ## Supported inputs / edge cases
 
@@ -114,6 +143,8 @@ SOURCE  plots.py
 | Analysis set ≠ paper cohort | Treated as a finding, not a footnote |
 | Multiple defensible denominators | Enumerate all, choose deliberately, state which is in force |
 | An honest null | A legitimate deliverable — "not distinguishable here" is an answer |
+| No decision hangs on the question | Phase 0 stops early and says so — also a legitimate deliverable |
+| The field already answered it | Deliverable becomes positioning + prior art, not a new finding |
 
 ## Skill Structure
 
