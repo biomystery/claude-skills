@@ -1,40 +1,54 @@
 ---
 name: log-to-journal
-description: Append a timestamped entry to today's Obsidian daily journal following vault conventions — resolves the YYYY/YYYY-WXX/YYYY-MM-DD.md path, inserts under the right section (Life/Work/Study) in reverse-chronological order, bumps the frontmatter updated: stamp, and handles the iCloud linter race and Unicode characters that break exact-string edits. Use whenever the user does meaningful work (decisions, purchases, fixes, errands) that should be recorded in the daily note.
+description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), one-line outcome plus [[wikilinks]] to hubs/spokes instead of restating detail, optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
 user-invocable: true
 ---
 
 # Log to Journal
 
-Appends one concise, timestamped entry to the user's Obsidian **daily journal**, following the vault's logging conventions exactly. Resolves the correct dated file path, inserts the entry into the right section in reverse-chronological order, links related notes with `[[wikilinks]]`, and updates the frontmatter `updated:` timestamp. Built for a vault where raw daily records live in `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`.
+Appends one **thin** timestamped entry to the user's Obsidian **daily journal**. The daily note is a **timeline / index**, not the archive — durable detail lives in hub/spoke notes; the journal points at them with time + a one-line outcome. Resolves `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, inserts reverse-chronologically, bumps `updated:`, and falls back to a UTF-8-safe inserter when `Edit` fails.
 
 ## When to Use
 
 - The user just did something worth recording: a decision, purchase, booking, errand, fix, or research result
 - The user explicitly says "log this", "add to journal", "记录到 journal"
 - You finished a task and the vault's CLAUDE.md asks you to proactively log meaningful work
+- A short inspiration / thought should be captured without opening a new note
 
 ## Core Rules (non-negotiable)
 
 | Rule | Why |
 |---|---|
-| **Time comes FIRST** in every entry: `08:02 ⚽ ...` — never `⚽ 08:02` | Vault convention; the timestamp is the sort key |
-| **Reverse-chronological within a section** — newer timestamps go **above** older ones | Vault convention; most recent work is read first |
-| Get the time from `date "+%H:%M"`, never guess | Entries must reflect the real clock |
-| **Headline + detail split**: the top bullet is only `HH:MM <emoji> <short title>`; put ALL details in a nested sub-bullet underneath — even a single detail goes on its own sub-line | User's preferred style; keeps the section scannable |
-| Link related notes with `[[wikilinks]]` | Keeps the daily note woven into the vault |
-| Bump frontmatter `updated:` after editing | Keeps Obsidian metadata honest |
-| Re-read the file immediately before editing | The iCloud/Obsidian linter rewrites files between read and edit |
-| **If today's log already has the entry, enrich it in place** — append sub-bullets via `journal_insert.py --anchor <existing line> --position after`; don't add a duplicate timestamped bullet | Following up on earlier work should extend that entry, not create a redundant one |
+| **Journal = timeline pointer, not archive** | Restating spoke content bloats dailies and makes weekly review expensive |
+| **Time comes FIRST**: `08:02 …` or `08:02–08:40 …` — never emoji-before-time | Vault sort key; prefer **start–end** when session length is known |
+| **One line is the default** — headline may include the outcome + links | Scannable day; details are a click away |
+| **If a `[[wikilink]]` exists (or you just created one), do not paste its body into the journal** | Single source of truth stays in the hub/spoke |
+| **Nested sub-bullets are rare** — at most 1–2 short lines (money, next action, caveat). Never nested lists of content that belongs in a spoke | Prevents the encyclopedic dump pattern |
+| **Inspiration OK** as 1–2 lines with no fake structure | Not everything needs a project note |
+| Get the time from `date "+%H:%M"` (and end time if the block just finished); never guess | Honest clock |
+| **Reverse-chronological within a section** — newer timestamps above older ones | Vault convention |
+| Link related notes with `[[wikilinks]]` | Weaves the day into the vault |
+| Bump frontmatter `updated:` after editing | Metadata honesty |
+| Re-read immediately before editing | iCloud/Obsidian linter race |
+| **If today's log already has the entry, enrich thinly** — append at most one short sub-bullet or tighten the headline; don't grow a novel under the same timestamp | Follow-ups extend the pointer, not the archive |
+
+### How detailed is enough? (resolves the tension)
+
+| Enough for the journal | Too much — put it in a spoke instead |
+|---|---|
+| Who / what + outcome in **≤1 line** + links | Background narrative, multi-bullet body, full lists (rules, findings, quotes) |
+| Optional: amount, deadline, or next action in **one** short sub-bullet | Re-stating anything already written under a `[[wikilink]]` |
+| Inspiration / open question in 1–2 lines | Meeting-minutes or analysis-novel under Life/Work |
+
+**Division of labor:** write or update the hub/spoke **first** when detail must persist → then log a thin pointer with time + links. If there is no note yet and detail is large, create a minimal spoke and link it — don't expand the journal entry.
 
 ## Instructions
 
 ### Step 0: Resolve the journal file path
 
-The daily note lives at `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`. **This vault's week starts Sunday.** Folder `WXX` is the ISO week of the **Monday** in that Sun–Sat range — **not** `date +%V` on Sunday (Sunday `%V` is off by one).
-
 ```bash
-VAULT="${VAULT_DIR:-$PWD}"          # repo root / vault root
+SKILL_DIR="$(dirname "$(realpath ~/.claude/skills/log-to-journal/SKILL.md)")"
+VAULT="${VAULT_DIR:-$PWD}"
 DATE=$(date "+%Y-%m-%d")
 YEAR=$(date "+%Y")
 # Sunday (%u=7): use tomorrow's ISO week. Mon–Sat: today's %V is correct.
@@ -54,8 +68,6 @@ If the file does not exist, the vault's Calendar plugin normally creates it from
 
 ### Step 1: Read the file and pick the section
 
-Read the journal. Daily notes have these `##` sections — choose by entry type:
-
 | Section | What goes here |
 |---|---|
 | `## 🏠 Life` | Home, errands, purchases, family, health, personal admin |
@@ -64,24 +76,62 @@ Read the journal. Daily notes have these `##` sections — choose by entry type:
 
 When in doubt, default to `🏠 Life`. If the user named a section, use that.
 
-### Step 2: Compose the entry
+### Step 2: Compose a thin entry
 
-**Two-line style (required):** the headline bullet is only `HH:MM <emoji> <short title>` — a few words, no details, no `—`-appended prose. Every detail goes in a **nested sub-bullet** below it, even when there's just one.
+**Default shape (preferred):**
 
-```
-- 14:44 🛒 HD 购入新热水器
-	- Rheem XG50T12HN38U2（50gal, 12年质保）$979 + 税 $75.87 = **$1,054.87**，Pickup 免费
-	- 下一步：找水工安装
-
-- 16:20 🏦 US Bank 注资开始
-	- 从 Discover 转了 **$3,000**（当日 instant 额度已满）；绑定 checking (7377)，等 trial deposits 确认（~7/10）。剩 **~$22k** 待转（8/6 前存满 $25k）
+```markdown
+- HH:MM <emoji> <one-line outcome> [[Spoke Or Hub]] · [[Other]]
 ```
 
-Don't cram the description onto the headline line (`- 14:44 🛒 HD 购入新热水器 — Rheem…`) — split it.
+**With duration** (when you know start and end):
 
-- The emoji is optional but matches the vault's visual style (🛒 purchase, 🔧 fix, ✅ done, 🚗 car, 💰 finance, 📄 new doc, ☎️ call).
-- Use `**bold**` for key figures/outcomes; `[[wikilinks]]` for related notes, people, dates.
-- Indent sub-bullets with a **tab**, not spaces (matches existing entries).
+```markdown
+- HH:MM–HH:MM <emoji> <one-line outcome> → [[Spoke]]
+```
+
+**Rare sub-bullet** (money / next action / caveat only):
+
+```markdown
+- 14:44 🛒 HD 购入新热水器 [[Home/Water Heater]]
+	- Rheem 50gal **$1,054.87** · next: book plumber
+```
+
+**Inspiration** (no forced project structure):
+
+```markdown
+- 22:15 💡 Idea: career floor = 20-min Tue/Thu block before deep work
+```
+
+#### Anti-pattern → fix
+
+❌ Dumping spoke content into the journal:
+
+```markdown
+- 20:10 🎒 [[April]] 4th Grade — 复盘「LEVEL UP」…
+	- **背景**：…
+	- **7 大规则**：L / E / V / E / L / U / P …
+	- **案卷归档**：新建 [[How to Level Up at School]] …
+```
+
+✅ Pointer only:
+
+```markdown
+- 20:10 🎒 [[April]] 4th Grade — 复盘「LEVEL UP」→ [[How to Level Up at School]] · 回写 [[2026-09-13 Fourth Grade Updates]]
+```
+
+or shorter:
+
+```markdown
+- 20:10–20:40 🎒 [[April]] LEVEL UP 复盘 + 准则卡 [[How to Level Up at School]]
+```
+
+Rules of thumb:
+
+- Emoji optional (🛒 🔧 ✅ 🚗 💰 📄 ☎️ 💡 🎒 …).
+- `**bold**` only for key figures/outcomes on the thin line.
+- Indent any rare sub-bullet with a **tab**, not spaces.
+- Prefer linking people as `[[Name]]` and artifacts as the spoke you just wrote.
 
 ### Step 3: Insert in reverse-chronological position
 
@@ -93,54 +143,52 @@ Prefer the `Edit` tool, anchoring on the existing bullet you're inserting above/
 
 ### Step 4: Handle the two edge cases that break `Edit`
 
-These bit the original session — expect them:
+**A. Linter race** — *"File has been modified since read."* **Fix:** Read again, then immediately Edit.
 
-**A. Linter race** — *"File has been modified since read."* The iCloud/Obsidian linter rewrites the file (e.g. bumps `updated:`) between your Read and Edit. **Fix:** Read the file again, then immediately Edit.
-
-**B. Unicode mismatch** — `Edit` fails to match a line containing characters like `→ ⏳ ❌ —` or CJK text, even though it looks identical (NBSP, full-width punctuation, or escape-normalization differences). **Fix:** Don't fight it with more `Edit` retries — use the helper script for an exact byte-level replace:
+**B. Unicode mismatch** — `Edit` fails on `→ ⏳ ❌ —` / CJK / NBSP. **Fix:** use the helper (don't retry `Edit`):
 
 ```bash
 python3 "$SKILL_DIR/scripts/journal_insert.py" \
   --file "$JOURNAL" \
   --anchor "- 13:07 🔧 [[Logseq-Import/Pages/gas heater|热水器]]" \
   --position before \
-  --text $'- 20:00 ✅ [[...]] 新机安装完成\n\t- 安装费 \$690'
+  --text $'- 20:00–20:45 ✅ [[...]] 新机安装完成 · 安装费 \$690'
 ```
 
-The script reads/writes UTF-8 directly and inserts relative to an anchor line (substring match), sidestepping the Edit tool's string normalization. See `scripts/journal_insert.py`.
+See `scripts/journal_insert.py`.
 
 ### Step 5: Bump the frontmatter `updated:` timestamp
 
-Set the YAML `updated:` field to now (the linter often does this for you, but do it explicitly if it didn't):
+```
+updated: YYYY-MM-DDTHH:MM
+```
 
-```
-updated: 2026-06-13T20:00
-```
+Use `date "+%Y-%m-%dT%H:%M"`.
 
 ### Step 6: Report
 
-Tell the user the time, section, and a one-line summary of what was logged. Don't paste the whole file back.
+Tell the user the time (or range), section, and the one-line pointer that was logged. Don't paste the whole file.
 
 ## Example Invocations
 
 ```
 /log-to-journal bought a new water heater, Rheem XG50T12HN38U2, $1,054.87
 ```
-→ Inserts a `🛒` entry under `🏠 Life` at the current time, in reverse-chronological order.
+→ Thin `🛒` Life line + amount sub-bullet only if useful; link a home note if one exists.
 
 ```
 /log-to-journal
 ```
-→ After finishing a task; reconstructs what was done this session and logs it.
+→ After a task: reconstruct **time + outcome + links to notes you wrote** — not the full session transcript.
 
 ## Output
 
-One timestamped bullet (plus optional sub-bullets) inserted into today's `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, with the frontmatter `updated:` field bumped.
+One thin timestamped bullet (optional 1 short sub-bullet) in today's `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, with `updated:` bumped.
 
 ## Requirements
 
-- An Obsidian vault using the `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md` daily-note layout
-- `date` with `%V` ISO-week support (GNU/BSD date both work)
+- Obsidian vault using `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`
+- `date` with `%V` ISO-week support (GNU/BSD)
 - `python3` for the Unicode-safe insert fallback
 
 ## Skill Structure
