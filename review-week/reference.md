@@ -9,6 +9,7 @@ Read this in Step 1. Keep PII out of weekly notes: `[[wikilink]]` people; never 
 - Goals table
 - What counts as a plan
 - Drafting a missing plan
+- [Honest suggestions (personal OS)](#honest-suggestions-personal-os)
 
 ## Compass files (long-term first)
 
@@ -131,3 +132,52 @@ Then:
 4. Do **not** invent deadlines. If timing is unknown, "this week" is enough.
 
 If several important goals lack plans, draft all of them; don't stop after the first.
+
+## Honest suggestions (personal OS)
+
+Write every review. Place after `## 💡 Lessons`, before `## 📅 下周计划`. Evidence must come from *this* week's dailies / Goals table / multi-week zombie 本周重点 — skip patterns with no signal.
+
+### Section template
+
+```markdown
+## 🪞 Honest suggestions
+> Agent notes on this week's time / system — levers, not blame. Pick 1–2 to try next week.
+
+### 1. <short title naming the leak>
+<1–2 lines of evidence from this week>.
+- **试：** <one concrete experiment, ideally ≤25 min or a sequenced habit>
+
+### 2. …
+…
+
+### N. One-line diagnosis
+<strongest OS strength this week>; <main recurring leak>. Efficiency comes from <smallest change>, not <tempting expansion>.
+```
+
+### Tone & bounds
+
+| Do | Don't |
+|---|---|
+| Tie each lever to a concrete thread, metric, or zombie item | Generic productivity sermons ("wake up earlier") |
+| Offer one `试：` experiment per item | Personality judgments or moralizing |
+| Cap 5–10 items; prefer fewer with evidence | Dump every pattern from the heuristic table |
+| End with a one-line diagnosis | Copy IDs, medical details, or account numbers |
+
+### Heuristic → example lever (fictional)
+
+| If you see… | Example `试：` |
+|---|---|
+| PRIMARY apps = 0 while a deep project ate the week | Do **1 PRIMARY atom** (1 app / 1 call / 1 profile edit) *before* opening the deep project |
+| Warm inbound moved; cold cadence still 0 | Treat warm as optionality; keep a Friday floor on apps |
+| New hub tree with Mermaid before first delivery | Cap new domains at **1 hub + 1 spoke + 1 next action** until a real ship |
+| Same cite/overclaim error ≥2× | `verified vs PDF` checkbox required before any number hits a slide |
+| Same 本周重点 item unchecked ≥2–3 weeks | Kill-or-do: 25-min slice / demote / real deadline — no "roll again" |
+| Daily Work sections novel-length; Highlight empty | 2-min end-of-day MIT Highlight line; review from Highlights first |
+| Open work only in daily inbox | Inbox→0: agent work → Backlog/`#task`; solo calls → external To Do |
+| Aversive shallow work always loses | Fixed 20-min calendar block (phone DND) for apps/calls only |
+| External hard dates hit; self goals soft | Give PRIMARY a self-deadline (e.g. Fri 17:00 apps ≥ N) |
+
+### Pre-write outline (chat)
+
+When presenting tables before write, add 3–5 Honest headlines (title + one evidence clause). Full prose goes into the weekly note only after confirmation (or immediately under `just do it`).
+

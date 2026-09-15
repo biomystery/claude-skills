@@ -1,6 +1,6 @@
 # review-week
 
-Review the past week's Obsidian daily journal entries, synthesize them into last week's weekly-note retrospective (Wins / Challenges / Lessons), **split 重要 vs 琐事**, write a **per-person family section from the vault owner's perspective**, check **primary-goal progress** on a long-term → short-term ladder, **draft a plan for any important goal that lacks one**, and roll only the still-open threads (plus drafted plans) into the current week's priorities. Built for `Journals/YYYY/YYYY-WNN.md` + `Journals/YYYY/YYYY-WNN/YYYY-MM-DD.md`.
+Review the past week's Obsidian daily journal entries, synthesize them into last week's weekly-note retrospective (Wins / Challenges / Lessons), **split 重要 vs 琐事**, write a **per-person family section from the vault owner's perspective**, check **primary-goal progress** on a long-term → short-term ladder, **draft a plan for any important goal that lacks one**, add **Honest suggestions** on personal-OS / focus / time-use levers, and roll only the still-open threads (plus drafted plans) into the current week's priorities. Built for `Journals/YYYY/YYYY-WNN.md` + `Journals/YYYY/YYYY-WNN/YYYY-MM-DD.md`.
 
 ## What It Does
 
@@ -10,8 +10,9 @@ Review the past week's Obsidian daily journal entries, synthesize them into last
 - Writes **👥 家人**: one subsection per family hub person, in the owner's voice (how I showed up for them — quiet weeks still get a stub)
 - Writes **🎯 Goals**: every important goal with long-term parent, short-term trace, this week's progress, and a Plan cell — drafts a next action when none exists
 - Writes Highlight / checked-off intentions / Wins / Challenges / 下周计划 / Lessons (重要·琐事 split)
+- Writes **🪞 Honest suggestions**: evidence-based levers on focus, time use, and personal-OS friction (PRIMARY starved by deep work, zombie rolls, hub sprawl, etc.) — pick 1–2 to try next week
 - Populates the current week's priorities with unresolved 重要 items **and drafted goal plans**, sorted by urgency (🔴 / 🟠 / 🟡)
-- Inserts missing People/Goals headings on older weekly notes; falls back to a Unicode-safe section-replace script when curly quotes or CJK punctuation defeat `Edit`
+- Inserts missing People/Goals/Honest headings on older weekly notes; falls back to a Unicode-safe section-replace script when curly quotes or CJK punctuation defeat `Edit`
 
 ## Workflow
 
@@ -20,11 +21,11 @@ flowchart TD
     start(["/review-week"])
     resolve["find_week_files.py\nresolve past + current\nweekly notes from\nfrontmatter dates"]
     readdaily["Read dailies + compass\n+ Family/*.md hubs"]
-    synth["Three cuts:\nthreads 重要/琐事\npeople owner's lens\ngoals ladder + plan gate"]
-    present["Present three tables\nPeople / Goals / Threads"]
-    fillpast["Fill past week:\nHighlight · 家人 · Goals\nWins / Challenges / Lessons"]
-    missing{"家人 / Goals\nheading exists?"}
-    insert["replace_section.py\n--insert-before Wins"]
+    synth["Four cuts:\nthreads 重要/琐事\npeople owner's lens\ngoals ladder + plan gate\nhonest OS suggestions"]
+    present["Present tables +\nHonest outline"]
+    fillpast["Fill past week:\nHighlight · 家人 · Goals\nWins / Challenges / Lessons\nHonest suggestions"]
+    missing{"家人 / Goals / Honest\nheading exists?"}
+    insert["replace_section.py\n--insert-before Wins\nor 下周计划"]
     editok1{Edit matched?}
     fallback1["replace_section.py\n(Unicode-safe)"]
     fillcurrent["Fill current 本周重点\nopen 重要 + drafted plans"]
@@ -101,6 +102,16 @@ Guided by: [[Self-Operating Manual]] 3–5yr → [[YYYY-Q3]] PRIMARY → this we
 
 ### 📎 琐事
 - Vendor issued a $500 store credit after a failed appliance swap
+
+## 🪞 Honest suggestions
+> Levers, not blame. Pick 1–2 next week.
+
+### 1. Deep craft crowding out PRIMARY
+Deck work shipped; apps/week still 0.
+- **试：** One app before opening the analysis folder each evening
+
+### 2. One-line diagnosis
+Strong on hard-problem ops; weak on a non-negotiable daily PRIMARY dose.
 ```
 
 ...and the current week's note gains:
@@ -139,6 +150,8 @@ Guided by: [[Self-Operating Manual]] 3–5yr → [[YYYY-Q3]] PRIMARY → this we
 | Weekly file rewritten by linter mid-edit | Re-read, then edit |
 | A thread already resolved during the week | Goes into Wins/Challenges, not into the current week's open items |
 | Important goal with no next action | Draft one this-week action; flag `⚠️ drafted`; put it on current 本周重点. Do not auto-create a project folder |
+| Older weekly note has no Honest suggestions heading | `replace_section.py --insert-before "## 📅 下周计划"` |
+| Honest suggestion with no evidence this week | Skip that heuristic — do not pad with generic advice |
 | Household saga with money + lots of chat noise | Decision/outcome → 重要; ping-pong → 琐事 (or omit from Highlight) |
 | Open 琐事 with no deadline | Do not roll forward |
 | Person hub contains IDs / DOB / medical details | Link `[[Name]]` only; never copy those fields into the weekly note |
