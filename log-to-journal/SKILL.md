@@ -1,6 +1,6 @@
 ---
 name: log-to-journal
-description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), one-line outcome plus [[wikilinks]] to hubs/spokes instead of restating detail, optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
+description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), either a one-line outcome or a scoped `project:` headline plus one thin action sub-bullet with [[wikilinks]]/PR links (never restating spoke bodies), optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
 user-invocable: true
 ---
 
@@ -21,9 +21,10 @@ Appends one **thin** timestamped entry to the user's Obsidian **daily journal**.
 |---|---|
 | **Journal = timeline pointer, not archive** | Restating spoke content bloats dailies and makes weekly review expensive |
 | **Time comes FIRST**: `08:02 …` or `08:02–08:40 …` — never emoji-before-time | Vault sort key; prefer **start–end** when session length is known |
-| **One line is the default** — headline may include the outcome + links | Scannable day; details are a click away |
+| **Thin by default** — don't restate spoke bodies; links carry detail | Scannable day; weekly review stays cheap |
+| **Scoped work → split headline / action** — `HH:MM <emoji> <scope>:` on the top line; **one** thin action sub-bullet below (links OK) | Long one-liners with multiple PR/issue links are hard to scan in Live Preview |
 | **If a `[[wikilink]]` exists (or you just created one), do not paste its body into the journal** | Single source of truth stays in the hub/spoke |
-| **Nested sub-bullets are rare** — at most 1–2 short lines (money, next action, caveat). Never nested lists of content that belongs in a spoke | Prevents the encyclopedic dump pattern |
+| **Nested sub-bullets stay thin** — at most **one** action/money/next-action line. Never nested lists of content that belongs in a spoke | #35 ban on encyclopedic dumps still stands; scope:/action is not a license to dump |
 | **Inspiration OK** as 1–2 lines with no fake structure | Not everything needs a project note |
 | Get the time from `date "+%H:%M"` (and end time if the block just finished); never guess | Honest clock |
 | **Reverse-chronological within a section** — newer timestamps above older ones | Vault convention |
@@ -36,8 +37,8 @@ Appends one **thin** timestamped entry to the user's Obsidian **daily journal**.
 
 | Enough for the journal | Too much — put it in a spoke instead |
 |---|---|
-| Who / what + outcome in **≤1 line** + links | Background narrative, multi-bullet body, full lists (rules, findings, quotes) |
-| Optional: amount, deadline, or next action in **one** short sub-bullet | Re-stating anything already written under a `[[wikilink]]` |
+| Who / what + outcome thinly + links (single line **or** `scope:` + one action line) | Background narrative, multi-bullet body, full lists (rules, findings, quotes) |
+| Optional: amount, deadline, or next action on that same thin action line | Re-stating anything already written under a `[[wikilink]]` |
 | Inspiration / open question in 1–2 lines | Meeting-minutes or analysis-novel under Life/Work |
 
 **Division of labor:** write or update the hub/spoke **first** when detail must persist → then log a thin pointer with time + links. If there is no note yet and detail is large, create a minimal spoke and link it — don't expand the journal entry.
@@ -78,32 +79,54 @@ When in doubt, default to `🏠 Life`. If the user named a section, use that.
 
 ### Step 2: Compose a thin entry
 
-**Default shape (preferred):**
+Pick the shape by how link-heavy the action is:
+
+**A. Tiny / single-link (one line is fine):**
 
 ```markdown
-- HH:MM <emoji> <one-line outcome> [[Spoke Or Hub]] · [[Other]]
-```
-
-**With duration** (when you know start and end):
-
-```markdown
+- HH:MM <emoji> <one-line outcome> [[Spoke Or Hub]]
 - HH:MM–HH:MM <emoji> <one-line outcome> → [[Spoke]]
 ```
 
-**Rare sub-bullet** (money / next action / caveat only):
+**B. Scoped session with links / multi-item action (preferred when a project/repo/person is clear):**
+
+```markdown
+- HH:MM–HH:MM <emoji> <scope>:
+	- <verb> [PR #N](url) <short title> + [PR #M](url) <short title> (#issue)
+```
+
+Example:
+
+```markdown
+- 09:24–09:48 🛠️ claude-skills:
+	- merged [PR #34](https://github.com/biomystery/claude-skills/pull/34) review-week Honest suggestions + [PR #36](https://github.com/biomystery/claude-skills/pull/36) log-to-journal thin records (#35)
+```
+
+- Headline = time + emoji + **scope label ending in `:`** only (repo, project, person, domain) — no action verbs on this line.
+- Sub-bullet = **one** thin action line (links OK). Still no background / lists / spoke body.
+
+**C. Money / next action only** (still one thin sub-bullet):
 
 ```markdown
 - 14:44 🛒 HD 购入新热水器 [[Home/Water Heater]]
 	- Rheem 50gal **$1,054.87** · next: book plumber
 ```
 
-**Inspiration** (no forced project structure):
+**D. Inspiration** (no forced project structure):
 
 ```markdown
 - 22:15 💡 Idea: career floor = 20-min Tue/Thu block before deep work
 ```
 
 #### Anti-pattern → fix
+
+❌ Mega-line packing scope + action + many links onto the timestamp line:
+
+```markdown
+- 09:24–09:48 🛠️ claude-skills: merged [PR #34](...) … + [PR #36](...) …
+```
+
+✅ Scope headline + thin action sub-bullet (pattern B above).
 
 ❌ Dumping spoke content into the journal:
 
@@ -120,10 +143,11 @@ When in doubt, default to `🏠 Life`. If the user named a section, use that.
 - 20:10 🎒 [[April]] 4th Grade — 复盘「LEVEL UP」→ [[How to Level Up at School]] · 回写 [[2026-09-13 Fourth Grade Updates]]
 ```
 
-or shorter:
+or with a clear scope:
 
 ```markdown
-- 20:10–20:40 🎒 [[April]] LEVEL UP 复盘 + 准则卡 [[How to Level Up at School]]
+- 20:10–20:40 🎒 [[April]]:
+	- LEVEL UP 复盘 + 准则卡 [[How to Level Up at School]]
 ```
 
 Rules of thumb:
