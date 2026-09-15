@@ -1,6 +1,6 @@
 ---
 name: log-to-journal
-description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), either a one-line outcome or a scoped `project:` headline plus one thin action sub-bullet with [[wikilinks]]/PR links (never restating spoke bodies), optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
+description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), either a one-line outcome or a `scope:` headline plus one thin action sub-bullet with [[wikilinks]]/PR links (never restating spoke bodies), optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
 user-invocable: true
 ---
 
