@@ -32,7 +32,7 @@ flowchart TD
     editok2{Edit matched?}
     fallback2["replace_section.py\n(Unicode-safe)"]
     stamp["Bump updated:\non both files"]
-    done(["Done\nreport Highlight, people,\ngoals, drafted plans"])
+    done(["Done\nreport Highlight, people,\ngoals, drafted plans,\nHonest headlines"])
 
     start --> resolve --> readdaily --> synth --> present --> fillpast --> missing
     missing -->|No| insert --> editok1

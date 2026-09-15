@@ -33,7 +33,7 @@ Source globs, person-section template, plan heuristics, and Honest-suggestions t
 | If `Edit` fails to match template placeholder text, don't retry with tweaks — use `scripts/replace_section.py` | Curly quotes / CJK punctuation break exact string match |
 | Bump each edited file's frontmatter `updated:` timestamp | Keeps Obsidian metadata honest |
 | Write **🪞 Honest suggestions** every review — levers from *this week's* evidence, not generic advice | Without a standing OS critique, the same focus leaks (PRIMARY starved by deep work, zombie rolls, hub sprawl) repeat unnoticed |
-| Honest suggestions = **levers not blame**; cap at ~5–10 bullets; tell the user to try 1–2 next week | A scolding essay won't get used; a short try-list will |
+| Honest suggestions = **levers not blame**; cap at ~5–10 items; tell the user to try 1–2 next week | A scolding essay won't get used; a short try-list will |
 
 ## Instructions
 
@@ -99,21 +99,7 @@ A goal **has a plan** only if a concrete next action exists (project `#task`, qu
 
 An activity with no long-term parent is 琐事, or a new important goal that needs naming — don't leave it unparented in the Goals table.
 
-**D. Honest suggestions (personal OS)** — after the three tables, draft a short critique of how the owner *ran* the week: focus, time use, system friction, recurring leaks. Ground every lever in evidence from this week's dailies / Goals progress / zombie 本周重点 items. Heuristics + section template: [reference.md](reference.md#honest-suggestions-personal-os).
-
-Scan at least these patterns (skip any that lack evidence this week):
-
-| Pattern | Typical signal |
-|---|---|
-| Deep/urgent craft crowding out PRIMARY cadence | Compass PRIMARY stalled while a hard project (analysis, legal, rebuild) ate evenings |
-| Warm channel mistaken for controllable progress | Inbound/recruiter/coffee moved; cold apps / profile Step 0 still 0 |
-| Hub-and-spoke / notes sprawl as completion | Multi-hub Mermaid / spoke trees built before a first real delivery |
-| Repeated quality failure without a gate | Same class of error ≥2× (wrong cites, overclaims) → need a verify-before-ship rule |
-| Zombie 本周重点 (≥2–3 weeks rolled) | Same LinkedIn / launch / phone item unchecked across weekly notes |
-| Fat daily logs, costly weekly synthesis | Novel-length Work sections; Highlight empty or still "MITs:" |
-| Task capture split / invisible checkboxes | Open work only in daily inbox, not Backlog / `#task` |
-| No protected shallow block for aversive work | Apps / calls / admin lose to deep-flow work every time |
-| External deadlines honored; self-deadlines soft | Family/legal dates hit; career PRIMARY has no self-imposed Friday floor |
+**D. Honest suggestions (personal OS)** — after the three tables, draft a short critique of how the owner *ran* the week: focus, time use, system friction, recurring leaks. Ground every lever in evidence from this week's dailies / Goals progress / zombie 本周重点 items. Pattern heuristics + section template: [reference.md](reference.md#honest-suggestions-personal-os) — skip any pattern with no signal this week.
 
 Tone: **levers not blame**. Each item = one observation + one concrete `试：` experiment. Cap **5–10** items; end with a one-line diagnosis. Do **not** invent personality flaws or copy PII.
 
