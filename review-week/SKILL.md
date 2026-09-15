@@ -1,15 +1,15 @@
 ---
 name: review-week
-description: Reviews the past week's Obsidian daily journal entries, synthesizes them by thread into the weekly-note retrospective (split 重要 vs 琐事), writes a per-person family section from the vault owner's perspective, checks progress on primary goals against the long-term → short-term ladder, drafts a plan for any important goal that lacks one, and rolls open items into the current week's priorities. Use when the user says "review my past week", "weekly review", "close out this week", "family weekly review", or "什么 open 了 roll 到这周".
+description: Reviews the past week's Obsidian daily journal entries, synthesizes them by thread into the weekly-note retrospective (split 重要 vs 琐事), writes a per-person family section from the vault owner's perspective, checks progress on primary goals against the long-term → short-term ladder, drafts a plan for any important goal that lacks one, adds an Honest suggestions section on personal-OS / focus / time-use levers, and rolls open items into the current week's priorities. Use when the user says "review my past week", "weekly review", "close out this week", "family weekly review", or "什么 open 了 roll 到这周".
 argument-hint: "[just do it]"
 user-invocable: true
 ---
 
 # Review Week
 
-Reads every daily journal entry in the past week, groups them into threads, classifies each as **重要** or **琐事**, then writes three cuts into last week's weekly note: (1) a **per-person family section from the vault owner's perspective**, (2) a **Goals** ladder (long-term compass → short-term trace → this week's progress → plan), (3) the existing Wins/Challenges/Lessons retrospective. Rolls only unresolved items — plus any newly drafted plans — into this week's priorities. Built for `Journals/YYYY/YYYY-WNN.md` + `Journals/YYYY/YYYY-WNN/YYYY-MM-DD.md` with `journal-start-date`/`journal-end-date` on each weekly note.
+Reads every daily journal entry in the past week, groups them into threads, classifies each as **重要** or **琐事**, then writes four cuts into last week's weekly note: (1) a **per-person family section from the vault owner's perspective**, (2) a **Goals** ladder (long-term compass → short-term trace → this week's progress → plan), (3) the existing Wins/Challenges/Lessons retrospective, (4) an **Honest suggestions** section on personal-OS / focus / time-use levers grounded in this week's evidence. Rolls only unresolved items — plus any newly drafted plans — into this week's priorities. Built for `Journals/YYYY/YYYY-WNN.md` + `Journals/YYYY/YYYY-WNN/YYYY-MM-DD.md` with `journal-start-date`/`journal-end-date` on each weekly note.
 
-Source globs, person-section template, and plan heuristics: [reference.md](reference.md). Read it in Step 1.
+Source globs, person-section template, plan heuristics, and Honest-suggestions template: [reference.md](reference.md). Read it in Step 1.
 
 ## When to Use
 
@@ -32,6 +32,8 @@ Source globs, person-section template, and plan heuristics: [reference.md](refer
 | Re-read a weekly file immediately before editing it | iCloud/Obsidian linter can rewrite between read and edit |
 | If `Edit` fails to match template placeholder text, don't retry with tweaks — use `scripts/replace_section.py` | Curly quotes / CJK punctuation break exact string match |
 | Bump each edited file's frontmatter `updated:` timestamp | Keeps Obsidian metadata honest |
+| Write **🪞 Honest suggestions** every review — levers from *this week's* evidence, not generic advice | Without a standing OS critique, the same focus leaks (PRIMARY starved by deep work, zombie rolls, hub sprawl) repeat unnoticed |
+| Honest suggestions = **levers not blame**; cap at ~5–10 items; tell the user to try 1–2 next week | A scolding essay won't get used; a short try-list will |
 
 ## Instructions
 
@@ -41,8 +43,8 @@ Copy and track:
 Review progress:
 - [ ] Step 0: Resolve week files
 - [ ] Step 1: Read dailies + compass + family hubs
-- [ ] Step 2: Three cuts (threads / people / goals+plans)
-- [ ] Step 3: Write past week (insert 家人/Goals if missing)
+- [ ] Step 2: Four cuts (threads / people / goals+plans / honest OS)
+- [ ] Step 3: Write past week (insert 家人/Goals/Honest if missing)
 - [ ] Step 4: Roll open items + drafted plans
 - [ ] Step 5–6: Stamp + report
 ```
@@ -70,9 +72,9 @@ Read [reference.md](reference.md) for globs and templates, then:
 
 If compass files are missing, fall back to: career / next role, AI-as-asset & side projects, family hard deadlines, finance with deadlines, life-as-system → 重要; everything else → 琐事.
 
-### Step 2: Synthesize three cuts
+### Step 2: Synthesize four cuts
 
-Work from the same daily threads. Produce three cuts before writing.
+Work from the same daily threads. Produce four cuts before writing.
 
 **A. Threads (existing)** — group by project/`[[wikilink]]`. For each: one-line what happened; resolved or still open; if open: next action + deadline; label 🎯 重要 or 📎 琐事.
 
@@ -97,11 +99,15 @@ A goal **has a plan** only if a concrete next action exists (project `#task`, qu
 
 An activity with no long-term parent is 琐事, or a new important goal that needs naming — don't leave it unparented in the Goals table.
 
-Present **three tables** in chat (People / Goals / Threads 重要+琐事) before writing, unless the user said "just do it." Flag every `⚠️ drafted` plan for confirmation.
+**D. Honest suggestions (personal OS)** — after the three tables, draft a short critique of how the owner *ran* the week: focus, time use, system friction, recurring leaks. Ground every lever in evidence from this week's dailies / Goals progress / zombie 本周重点 items. Pattern heuristics + section template: [reference.md](reference.md#honest-suggestions-personal-os) — skip any pattern with no signal this week.
+
+Tone: **levers not blame**. Each item = one observation + one concrete `试：` experiment. Cap **5–10** items; end with a one-line diagnosis. Do **not** invent personality flaws or copy PII.
+
+Present **three tables** in chat (People / Goals / Threads 重要+琐事) **plus a short Honest-suggestions outline** before writing, unless the user said "just do it." Flag every `⚠️ drafted` plan for confirmation.
 
 ### Step 3: Fill in the past week's retrospective
 
-Read `past_week.weekly_file`. Expected shape (People / Goals may be missing on older notes — insert them):
+Read `past_week.weekly_file`. Expected shape (People / Goals / Honest may be missing on older notes — insert them):
 
 ```
 ## ✨ Highlight
@@ -111,6 +117,7 @@ Read `past_week.weekly_file`. Expected shape (People / Goals may be missing on o
 ## 🎉 Wins
 ## 🚧 Challenges
 ## 💡 Lessons
+## 🪞 Honest suggestions
 ## 📅 下周计划
 ```
 
@@ -122,6 +129,7 @@ Write:
 - **🎯 Goals** — Step 2C table. Insert before `## 🎉 Wins` (after 家人) if missing. Every row must have a Plan cell — never leave it blank.
 - **🎉 Wins** / **🚧 Challenges** — `### 🎯 重要` then `### 📎 琐事`. Keep 琐事 to ≤2–3 bullets total across both; omit pure noise.
 - **💡 Lessons** — 1–3 bullets, **重要 takeaways only**.
+- **🪞 Honest suggestions** — Step 2D. Insert after `## 💡 Lessons`, before `## 📅 下周计划`. If the heading is missing, `--insert-before "## 📅 下周计划"` (or before Footer if 下周计划 is also missing).
 - **📅 下周计划** — same open items as Step 4, split 🎯 / 📎（有截止才跟）. Include every `⚠️ drafted` plan under 🎯.
 
 Prefer `Edit`. If it fails on punctuation drift, or the heading is missing:
@@ -134,7 +142,7 @@ python3 "$SKILL_DIR/scripts/replace_section.py" \
   --body $'### [[Name]]\n- **This week:** …'
 ```
 
-Repeat per section. Use `--insert-before` only when the heading does not yet exist (`## 👥 家人` and `## 🎯 Goals` both insert before `## 🎉 Wins` — insert 家人 first, then Goals).
+Repeat per section. Use `--insert-before` only when the heading does not yet exist (`## 👥 家人` and `## 🎯 Goals` both insert before `## 🎉 Wins` — insert 家人 first, then Goals; `## 🪞 Honest suggestions` inserts before `## 📅 下周计划`).
 
 ### Step 4: Roll open items into the current week
 
@@ -158,14 +166,14 @@ date "+%Y-%m-%dT%H:%M"
 
 ### Step 6: Report
 
-Summarize in chat: Highlight; people with a notable move vs quiet stubs; goals moved/stalled and any `⚠️ drafted` plans now sitting on this week's 本周重点; what else rolled forward. Don't re-paste the full files.
+Summarize in chat: Highlight; people with a notable move vs quiet stubs; goals moved/stalled and any `⚠️ drafted` plans now sitting on this week's 本周重点; what else rolled forward; **1–3 Honest-suggestion headlines** (the ones worth trying this week). Don't re-paste the full files.
 
 ## Example Invocations
 
 ```
 /review-week
 ```
-→ Reviews dailies, fills last week's People / Goals / Wins/Challenges (重要/琐事), drafts missing plans, populates this week's 📋 本周重点.
+→ Reviews dailies, fills last week's People / Goals / Wins/Challenges (重要/琐事) + Honest suggestions, drafts missing plans, populates this week's 📋 本周重点.
 
 ```
 review my past week
@@ -181,7 +189,7 @@ review my past week
 
 Two weekly notes updated in place:
 
-- Past week — Highlight (重要), checked-off 本周重点, 👥 家人, 🎯 Goals (every important goal has a Plan), Wins/Challenges/下周计划 with 🎯/📎 subsections, Lessons
+- Past week — Highlight (重要), checked-off 本周重点, 👥 家人, 🎯 Goals (every important goal has a Plan), Wins/Challenges/下周计划 with 🎯/📎 subsections, Lessons, **🪞 Honest suggestions** (OS / focus / time-use levers)
 - Current week — 📋 本周重点 populated with rolled-forward open items **plus drafted goal plans**, 重要-biased, by urgency
 
 ## Requirements
