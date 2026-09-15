@@ -16,10 +16,19 @@ Append a **thin**, timestamped **timeline pointer** to today's Obsidian daily jo
 
 | Daily journal | Hub / spoke |
 |---|---|
-| Timeline index: who/what + outcome + links | Full background, lists, analysis, evidence |
-| Optional 1 short sub-bullet (money / next step) | Anything you'd want to re-read next month |
+| Timeline index: time + thin outcome + links | Full background, lists, analysis, evidence |
+| Scoped work: `HH:MM emoji scope:` + **one** action sub-bullet | Anything you'd want to re-read next month |
 
 Write the spoke first when detail must persist → then log the pointer.
+
+**Scoped headline split** (when the action is link-heavy):
+
+```markdown
+- 09:24–09:48 🛠️ claude-skills:
+	- merged [PR #34](https://github.com/biomystery/claude-skills/pull/34) review-week Honest suggestions + [PR #36](https://github.com/biomystery/claude-skills/pull/36) log-to-journal thin records (#35)
+```
+
+Do **not** pack scope + merged PRs onto one mega-line.
 
 ## Workflow
 
@@ -90,6 +99,13 @@ Restart Claude Code — `/log-to-journal` becomes available.
 - 20:10 🎒 [[April]] 4th Grade — 复盘「LEVEL UP」→ [[How to Level Up at School]] · 回写 [[2026-09-13 Fourth Grade Updates]]
 ```
 
+**Scoped session (link-heavy — do):**
+
+```markdown
+- 09:24–09:48 🛠️ claude-skills:
+	- merged [PR #34](https://github.com/biomystery/claude-skills/pull/34) review-week Honest suggestions + [PR #36](https://github.com/biomystery/claude-skills/pull/36) log-to-journal thin records (#35)
+```
+
 **Other thin samples:**
 
 ```markdown
@@ -111,6 +127,7 @@ Restart Claude Code — `/log-to-journal` becomes available.
 | Situation | Handling |
 |---|---|
 | Session just produced a long spoke | Log time + link only; body stays in the spoke |
+| Link-heavy / multi-PR action under a named project | `scope:` headline + one thin action sub-bullet |
 | Inspiration with no note | 1–2 line 💡 entry; don't invent a project folder |
 | Known start and end | Prefer `HH:MM–HH:MM` |
 | File rewritten by linter mid-edit | Re-read, then edit |
