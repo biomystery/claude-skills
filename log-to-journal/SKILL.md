@@ -1,6 +1,6 @@
 ---
 name: log-to-journal
-description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), either a one-line outcome or a `scope:` headline plus one thin action sub-bullet with [[wikilinks]]/PR links (never restating spoke bodies), optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Use when the user says "log this", "add to journal", "记录到 journal", or after meaningful work that should leave a timeline pointer (not a full archive dump).
+description: Appends a thin, timestamped record to today's Obsidian daily journal — time-first (prefer start–end), either a one-line outcome or a `scope:` headline plus one thin action sub-bullet with [[wikilinks]]/PR links (never restating spoke bodies), optional short inspiration lines — and handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. Also supports `/log-to-journal simplify` to rewrite fat entries in today's daily note into thin timeline pointers in place. Use when the user says "log this", "add to journal", "记录到 journal", "simplify" (journal), or after meaningful work that should leave a timeline pointer (not a full archive dump).
 user-invocable: true
 ---
 
@@ -8,10 +8,13 @@ user-invocable: true
 
 Appends one **thin** timestamped entry to the user's Obsidian **daily journal**. The daily note is a **timeline / index**, not the archive — durable detail lives in hub/spoke notes; the journal points at them with time + a one-line outcome. Resolves `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, inserts reverse-chronologically, bumps `updated:`, and falls back to a UTF-8-safe inserter when `Edit` fails.
 
+**Modes:** default = append one thin entry; **`simplify`** = rewrite fat entries already in today's journal into thin pointers (no new timestamp).
+
 ## When to Use
 
 - The user just did something worth recording: a decision, purchase, booking, errand, fix, or research result
 - The user explicitly says "log this", "add to journal", "记录到 journal"
+- The user says `/log-to-journal simplify`, "simplify journal", or "thin today's journal" → run **Mode: simplify** (below), not append
 - You finished a task and the vault's CLAUDE.md asks you to proactively log meaningful work
 - A short inspiration / thought should be captured without opening a new note
 
@@ -43,7 +46,59 @@ Appends one **thin** timestamped entry to the user's Obsidian **daily journal**.
 
 **Division of labor:** write or update the hub/spoke **first** when detail must persist → then log a thin pointer with time + links. If there is no note yet and detail is large, create a minimal spoke and link it — don't expand the journal entry.
 
-## Instructions
+## Mode: simplify
+
+Triggered by `/log-to-journal simplify` (also: `simplify`, `simplify journal`, `thin today's journal`). **Do not append a new entry.** Rewrite fat bullets already in **today's** daily note so they match the thin rules above.
+
+### Simplify steps
+
+1. **Resolve** today's journal path (same Step 0 as append). Stop if missing.
+2. **Re-read** the full file immediately before editing.
+3. **Scope:** only `## 🏠 Life`, `## 💼 Work`, and `## 📖 Study`. Leave Highlight, Tasks, inbox, templates, and other sections untouched.
+4. **Walk top-level timestamp bullets** (`- HH:MM` or `- HH:MM–HH:MM`). For each entry (headline + its nested sub-bullets), decide:
+   - **Already thin** → leave unchanged (still eligible for step 7 consolidate).
+   - **Fat** → rewrite in place using the same timestamp (and emoji if present).
+5. **What counts as fat** (any one is enough):
+   - Mega-line: scope + long action / many clauses packed onto the timestamp line
+   - Encyclopedic dump: 2+ nested sub-bullets of background, lists, rules, findings, or spoke body
+   - Restates content that a `[[wikilink]]` on the line already covers
+   - Nested depth beyond one action/money/next-action line (except the consolidate form in step 7)
+6. **Rewrite targets** (pick the thinnest fit):
+   - Clear project/person/domain → pattern **B**: `HH:MM <emoji> <scope>:` + **one** tab-indented action line (keep important `[[wikilinks]]`, PR links, key figures)
+   - Single outcome / one primary link → pattern **A**: one thin line
+   - Money / next action only → pattern **C**
+   - Collapse multi-bullet dumps to one pointer line; **do not** invent a new spoke — if detail has nowhere to live, keep the single most important outcome + existing links only
+7. **Consolidate same primary link/scope** (after thinning): when **2+** top-level bullets in a section share the same primary `[[wikilink]]` (or the same clear scope label, e.g. `3d-printing`), merge them into **one** block:
+   - Headline: `HH:MM–HH:MM <emoji> [[Spoke]]:` (or scope label) using earliest–latest edit times in that group
+   - Sub-bullets: **one thin line per original edit**, each starting with its own `HH:MM` (reverse-chron within the group)
+   - Split mixed bullets first if needed (e.g. repo push stays under `3d-printing:`; knowledge-base prose moves under the spoke)
+   - Do **not** flatten distinct timestamps into a single undated line; do **not** merge unrelated subjects that merely share an emoji
+8. **Preserve:** meaning/outcome; existing wikilinks and critical numbers; section placement. Re-sort the section reverse-chron by each top-level headline’s **end** time after consolidate. Do **not** delete outcomes; do **not** move detail into new notes unless the user asked.
+9. **Bump** frontmatter `updated:` (`date "+%Y-%m-%dT%H:%M"`).
+10. **Report:** thinned count, consolidated groups (with the new range headlines), left alone; show only changed one-liners (not the whole file). If nothing needed work: say so and stop.
+
+### Consolidate example
+
+```markdown
+- 10:55–16:40 📚 [[Projects/Doing/26_AD5X_3D_Printing/3D Printing 知识库]]:
+	- 16:40 省料实测表 + 用料饼图
+	- 15:58 示意图/阈值更正被覆盖 → 重写 + Changelog
+	- 15:51 加示意图；更正支撑阈值角度
+	- 10:55 新建知识库（参数取自蝠鲼实机档案）
+```
+
+### Simplify anti-patterns
+
+| Don't | Do |
+|---|---|
+| Append a new `HH:MM … simplify` bullet | Edit/consolidate existing bullets only |
+| Strip every sub-bullet blindly | Keep **one** thin action per *edit*; consolidate groups may have many timestamped lines |
+| Drop `[[wikilinks]]` or key `$` / durations to "shorten" | Keep links and critical figures; cut narrative |
+| Merge unrelated topics that share an emoji | Group only by primary `[[wikilink]]` / same scope label |
+| Collapse several edits into one undated sub-bullet | Keep each edit’s `HH:MM` on its own sub-line |
+| "Simplify" Highlight / Tasks / non-journal sections | Life / Work / Study only |
+
+## Instructions (append mode)
 
 ### Step 0: Resolve the journal file path
 
@@ -205,9 +260,16 @@ Tell the user the time (or range), section, and the one-line pointer that was lo
 ```
 → After a task: reconstruct **time + outcome + links to notes you wrote** — not the full session transcript.
 
+```
+/log-to-journal simplify
+```
+→ No new bullet. Thin fat Life/Work/Study entries, then consolidate same-`[[wikilink]]` edits into one range + timestamped sub-lines; report what changed.
+
 ## Output
 
-One thin timestamped bullet (optional 1 short sub-bullet) in today's `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, with `updated:` bumped.
+**Append mode:** one thin timestamped bullet (optional 1 short sub-bullet) in today's `Journals/YYYY/YYYY-WXX/YYYY-MM-DD.md`, with `updated:` bumped.
+
+**Simplify mode:** in-place thinned + consolidated bullets in that same file; report counts + the new range/one-liners only.
 
 ## Requirements
 
