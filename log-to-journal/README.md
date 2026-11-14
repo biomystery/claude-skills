@@ -1,6 +1,6 @@
 # log-to-journal
 
-Append a **thin**, timestamped **timeline pointer** to today's Obsidian daily journal — not an archive dump. Prefer time (or start–end), a one-line outcome, and `[[wikilinks]]` to hubs/spokes that hold the detail. Handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks.
+Append a **thin**, timestamped **timeline pointer** to today's Obsidian daily journal — not an archive dump. Prefer time (or start–end), a one-line outcome, and `[[wikilinks]]` to hubs/spokes that hold the detail. Handles path resolution, reverse-chronological insert, linter races, and Unicode-safe fallbacks. **`/log-to-journal simplify`** rewrites fat entries already in today's note into thin pointers (no new timestamp).
 
 ## What It Does
 
@@ -11,6 +11,7 @@ Append a **thin**, timestamped **timeline pointer** to today's Obsidian daily jo
 - Allows short inspiration lines without fake project structure
 - Bumps frontmatter `updated:`
 - Falls back to a UTF-8-safe Python inserter when `Edit` can't match a line
+- **`simplify` mode:** walks today's Life/Work/Study timestamp bullets, rewrites mega-lines / dumps to thin pointers, then **consolidates** 2+ bullets that share the same primary `[[wikilink]]` into one `HH:MM–HH:MM` block with a timestamped sub-line per edit
 
 ## Journal vs spoke (how detailed is enough?)
 
@@ -34,8 +35,9 @@ Do **not** pack scope + merged PRs onto one mega-line.
 
 ```mermaid
 flowchart TD
-    start(["/log-to-journal\n[what happened]"])
-    resolve["Resolve path\nJournals/YYYY/YYYY-WXX/YYYY-MM-DD.md"]
+    start(["/log-to-journal\n[args]"])
+    mode{"simplify?"}
+    resolveA["Resolve today's journal path"]
     exists{File exists?}
     ask["Ask user / let\nCalendar plugin create it"]
     section["Pick section:\nLife / Work / Study"]
@@ -50,19 +52,32 @@ flowchart TD
     pyscript["scripts/journal_insert.py"]
     stamp["Bump updated:"]
     done(["Done\nreport time + one-liner"])
+    resolveS["Resolve today's journal path"]
+    simpRead["Re-read file"]
+    simpWalk["Walk Life/Work/Study\ntimestamp bullets"]
+    simpFat{"Fat mega-line\nor dump?"}
+    simpRewrite["Rewrite in place\nto thin pointer"]
+    simpSkip["Leave alone"]
+    simpMerge["Consolidate same\n[[wikilink]] / scope"]
+    simpStamp["Bump updated:"]
+    simpDone(["Report thinned +\nconsolidated groups"])
 
-    start --> resolve --> exists
+    start --> mode
+    mode -->|No — append| resolveA --> exists
     exists -->|No| ask --> section
     exists -->|Yes| section
     section --> spoke
     spoke -->|Yes| create --> place
     spoke -->|No / tiny| linkonly --> place
     place --> edit --> ok
-    ok -->|Yes| stamp
+    ok -->|Yes| stamp --> done
     ok -->|No| why
     why -->|modified since read| reread --> edit
     why -->|Unicode mismatch| pyscript --> stamp
-    stamp --> done
+    mode -->|Yes| resolveS --> simpRead --> simpWalk --> simpFat
+    simpFat -->|Yes| simpRewrite --> simpWalk
+    simpFat -->|No| simpSkip --> simpWalk
+    simpWalk --> simpMerge --> simpStamp --> simpDone
 ```
 
 ## Install
@@ -80,6 +95,7 @@ Restart Claude Code — `/log-to-journal` becomes available.
 /log-to-journal fixed the garage door opener, replaced the worn gear
 /log-to-journal booked dentist for next Tuesday
 /log-to-journal            # after a task — thin pointer to notes you wrote
+/log-to-journal simplify   # thin + consolidate same-[[wikilink]] edits in today's journal
 ```
 
 ## Output
@@ -133,6 +149,7 @@ Restart Claude Code — `/log-to-journal` becomes available.
 | File rewritten by linter mid-edit | Re-read, then edit |
 | Unicode / CJK breaks Edit | `scripts/journal_insert.py` |
 | Follow-up on an existing timestamp | Add at most one short sub-bullet — don't grow a novel |
+| `/log-to-journal simplify` | Thin fat Life/Work/Study bullets; consolidate same-`[[wikilink]]` edits into one range + timestamped sub-lines; no new entry |
 | Daily file missing | Stop and ask |
 
 ## Skill Structure
