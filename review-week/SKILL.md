@@ -59,6 +59,8 @@ python3 "$SKILL_DIR/scripts/find_week_files.py" --vault "$VAULT"
 
 This prints JSON with `current_week` and `past_week`. Use these paths for every step below.
 
+**Timing note**: When the review runs on Saturday evening (before the week officially ends), the week to close is the one containing today — that is, `current_week` in the script's output — not `past_week`. In this case, you are closing out the current week in progress. Use `--closing-current` flag to make the script return today's week as the week to close: `python3 "$SKILL_DIR/scripts/find_week_files.py" --vault "$VAULT" --closing-current`
+
 If `past_week` is `null`, tell the user and stop, or offer to just do the current-week rollup.
 
 ### Step 1: Read dailies, family hubs, and the goal compass
@@ -103,7 +105,13 @@ An activity with no long-term parent is 琐事, or a new important goal that nee
 
 Tone: **levers not blame**. Each item = one observation + one concrete `试：` experiment. Cap **5–10** items; end with a one-line diagnosis. Do **not** invent personality flaws or copy PII.
 
-Present **three tables** in chat (People / Goals / Threads 重要+琐事) **plus a short Honest-suggestions outline** before writing, unless the user said "just do it." Flag every `⚠️ drafted` plan for confirmation.
+**E. Time & MITs** — after the other analyses, compile two pieces:
+
+1. **Time by domain**: Sum ONLY daily-journal entries that have explicit start/end times (e.g., "09:00–10:30 deep work on X"). For each domain (Work/Study/Life or custom categories found in the dailies), report rough hours with citations from the [[YYYY-MM-DD]] daily notes they came from. State clearly this total is **not** total work hours. Entries with no duration are listed as **无时长**, never estimated. Domains with no timed record say **无记录**. Never state an untraced number.
+
+2. **3 MITs for next week**: Exactly three Most Important Things, each tied to an open important thread or goal plan, each citing its source dates (daily/weekly notes), and they must be consistent with the 🎯 items rolled into next week's `## 📋 本周重点` (MITs go at the top of 🔴/🟠). These are commitments for the coming week.
+
+Present **three tables** in chat (People / Goals / Threads 重要+琐事) **plus a short Honest-suggestions outline** **plus the Time & MITs summary** before writing, unless the user said "just do it." Flag every `⚠️ drafted` plan for confirmation.
 
 ### Step 3: Fill in the past week's retrospective
 
@@ -118,6 +126,7 @@ Read `past_week.weekly_file`. Expected shape (People / Goals / Honest may be mis
 ## 🚧 Challenges
 ## 💡 Lessons
 ## 🪞 Honest suggestions
+## ⏱️ 时间去向 & MITs
 ## 📅 下周计划
 ```
 
@@ -129,7 +138,8 @@ Write:
 - **🎯 Goals** — Step 2C table. Insert before `## 🎉 Wins` (after 家人) if missing. Every row must have a Plan cell — never leave it blank.
 - **🎉 Wins** / **🚧 Challenges** — `### 🎯 重要` then `### 📎 琐事`. Keep 琐事 to ≤2–3 bullets total across both; omit pure noise.
 - **💡 Lessons** — 1–3 bullets, **重要 takeaways only**.
-- **🪞 Honest suggestions** — Step 2D. Insert after `## 💡 Lessons`, before `## 📅 下周计划`. If the heading is missing, `--insert-before "## 📅 下周计划"` (or before Footer if 下周计划 is also missing).
+- **🪞 Honest suggestions** — Step 2D. Insert after `## 💡 Lessons`, before `## ⏱️ 时间去向 & MITs`. If the heading is missing, `--insert-before "## ⏱️ 时间去向 & MITs"` (or before `## 📅 下周计划` if Time section is also missing).
+- **⏱️ 时间去向 & MITs** — Step 2E. Insert after `## 🪞 Honest suggestions`, before `## 📅 下周计划`. If the heading is missing, `--insert-before "## 📅 下周计划"`.
 - **📅 下周计划** — same open items as Step 4, split 🎯 / 📎（有截止才跟）. Include every `⚠️ drafted` plan under 🎯.
 
 Prefer `Edit`. If it fails on punctuation drift, or the heading is missing:
@@ -166,7 +176,7 @@ date "+%Y-%m-%dT%H:%M"
 
 ### Step 6: Report
 
-Summarize in chat: Highlight; people with a notable move vs quiet stubs; goals moved/stalled and any `⚠️ drafted` plans now sitting on this week's 本周重点; what else rolled forward; **1–3 Honest-suggestion headlines** (the ones worth trying this week). Don't re-paste the full files.
+Summarize in chat: Highlight; people with a notable move vs quiet stubs; goals moved/stalled and any `⚠️ drafted` plans now sitting on this week's 本周重点; what else rolled forward; **1–3 Honest-suggestion headlines** (the ones worth trying this week); **time-domain totals and the 3 MITs** for next week. Don't re-paste the full files.
 
 ## Example Invocations
 

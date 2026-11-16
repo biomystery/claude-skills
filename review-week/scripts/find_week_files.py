@@ -12,7 +12,12 @@ journal-end-date) and picks by actual date range, which is authoritative
 regardless of numbering scheme.
 
 Usage:
-    find_week_files.py --vault PATH [--date YYYY-MM-DD]
+    find_week_files.py --vault PATH [--date YYYY-MM-DD] [--closing-current]
+
+The --closing-current flag is for Saturday evening reviews when you want to
+close out the current week before it officially ends. With this flag, the
+week containing today is returned as past_week (the week to close), and the
+next week becomes current_week (where open items roll forward).
 
 Prints JSON:
 {
@@ -93,6 +98,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--vault", required=True)
     ap.add_argument("--date", default=None, help="Target date, default today (YYYY-MM-DD)")
+    ap.add_argument(
+        "--closing-current",
+        action="store_true",
+        help="Return today's week as the week to close (for Saturday evening reviews before week ends)",
+    )
     args = ap.parse_args()
 
     today = datetime.strptime(args.date, "%Y-%m-%d").date() if args.date else date.today()
@@ -110,11 +120,21 @@ def main():
     idx = weeks.index(current)
     past = weeks[idx - 1] if idx > 0 else None
 
-    result = {
-        "today": today.isoformat(),
-        "current_week": week_info(*current),
-        "past_week": week_info(*past) if past else None,
-    }
+    if args.closing_current:
+        # When closing current week (e.g., Saturday evening before week ends),
+        # return current as past_week and next as current_week
+        next_week = weeks[idx + 1] if idx + 1 < len(weeks) else None
+        result = {
+            "today": today.isoformat(),
+            "current_week": week_info(*next_week) if next_week else None,
+            "past_week": week_info(*current),
+        }
+    else:
+        result = {
+            "today": today.isoformat(),
+            "current_week": week_info(*current),
+            "past_week": week_info(*past) if past else None,
+        }
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0
 
