@@ -10,6 +10,7 @@ Read this in Step 1. Keep PII out of weekly notes: `[[wikilink]]` people; never 
 - What counts as a plan
 - Drafting a missing plan
 - [Honest suggestions (personal OS)](#honest-suggestions-personal-os)
+- [Time & MITs](#time--mits)
 
 ## Compass files (long-term first)
 
@@ -180,4 +181,71 @@ Write every review. Place after `## 💡 Lessons`, before `## 📅 下周计划`
 ### Pre-write outline (chat)
 
 When presenting tables before write, add 3–5 Honest headlines (title + one evidence clause). Full prose goes into the weekly note only after confirmation (or immediately under `just do it`).
+
+## Time & MITs
+
+Written after `## 🪞 Honest suggestions`, before `## 📅 下周计划`. Two components:
+
+### 1. Time by domain
+
+Sum ONLY daily-journal entries that have explicit start/end times. Never estimate or invent durations.
+
+**Rules:**
+- Only count entries with explicit times (e.g., "09:00–10:30 deep work on project X")
+- Cite each figure with the [[YYYY-MM-DD]] daily note it came from
+- State clearly the total is **not** total work hours
+- Entries with no duration → 无时长, never estimated
+- Domains with no timed record → 无记录
+- Never state an untraced number
+
+**Example domains**: Work / Study / Life / Deep focus / Meetings / Admin / etc. (use whatever categories appear in the dailies)
+
+### 2. Three MITs for next week
+
+Exactly three Most Important Things for the coming week. Each MIT:
+- Tied to an open important thread or goal plan
+- Cites source dates (daily/weekly notes where it originated)
+- Consistent with 🎯 items rolled into next week's `## 📋 本周重点`
+- MITs go at the top of 🔴/🟠 priorities
+
+### Section template
+
+```markdown
+## ⏱️ 时间去向 & MITs
+
+### 时间去向（本周已记录）
+> 注：仅统计日记中明确标注开始/结束时间的条目。总计不代表总工作时长。
+
+- **Deep work**: ~12h ([[2026-11-10]], [[2026-11-12]], [[2026-11-13]])
+- **Meetings**: ~5h ([[2026-11-11]], [[2026-11-14]])
+- **Admin / 琐事**: ~3h ([[2026-11-11]], [[2026-11-15]])
+- **Study**: 无记录
+- **Untraced entries**: 3 items 无时长 ([[2026-11-10]], [[2026-11-12]])
+
+### 下周三件要事 (MITs)
+1. **Send 3 Director apps** — from [[job-search]] plan ([[2026-W45]]), top 🔴 priority
+2. **Ship MVP demo of AI tool** — from [[AI-product]] thread ([[2026-11-13]], [[2026-11-14]]), 🟠 this week
+3. **20-min Sun planning block with [[Alex]]** — drafted plan for freshman study skills ([[2026-W45]] Goals), 🟠 this week
+```
+
+### Fictional example (complete section)
+
+```markdown
+## ⏱️ 时间去向 & MITs
+
+### 时间去向（本周已记录）
+> 注：仅统计日记中明确标注开始/结束时间的条目。总计不代表总工作时长。
+
+- **Deep work (project/analysis)**: ~14h ([[2026-11-10]] 3h, [[2026-11-12]] 5h, [[2026-11-13]] 4h, [[2026-11-15]] 2h)
+- **Meetings & calls**: ~6h ([[2026-11-11]] 2h, [[2026-11-13]] 1.5h, [[2026-11-14]] 2.5h)
+- **Job search (apps/prep)**: ~2h ([[2026-11-10]] 1h, [[2026-11-14]] 1h)
+- **Admin / household**: ~4h ([[2026-11-11]] 2h, [[2026-11-15]] 2h)
+- **Study / learning**: 无记录
+- **Untraced entries**: 5 items 无时长 ([[2026-11-10]] 2×, [[2026-11-12]], [[2026-11-14]] 2×)
+
+### 下周三件要事 (MITs)
+1. **Send 3 targeted Director apps** — from [[job-search]] quarterly PRIMARY ([[2026-W45]] Goals, ⚠️ drafted plan), 🔴 urgent
+2. **Complete profile Step 0 revision** — from [[job-search]] thread ([[2026-11-13]], [[2026-11-14]]), 🟠 this week
+3. **Sun 20-min planning block with [[Alex]]** — drafted plan for freshman study skills ([[2026-W45]] Goals), 🟠 this week
+```
 
